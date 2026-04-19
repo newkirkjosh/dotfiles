@@ -49,7 +49,7 @@ arch:
     - curl
 
     # App launcher / clipboard / screenshot helpers
-    - wofi                 # wlroots-native launcher (rofi-wayland is no longer packaged)
+    - rofi                 # launcher (official extra; works under XWayland on Hyprland)
     - cliphist
     - wl-clipboard
     - grim
