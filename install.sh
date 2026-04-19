@@ -2,13 +2,13 @@
 # Bootstrap installer for dotfiles.
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/newkirkj/dotfiles/main/install.sh | sh -s -- [profile]
+#   curl -sSL https://raw.githubusercontent.com/newkirkjosh/dotfiles/main/install.sh | sh -s -- [profile]
 #
 # If no profile is passed, auto-detects via hyprctl + battery presence.
 
 set -euo pipefail
 
-DOTFILES_REPO="newkirkj/dotfiles"
+DOTFILES_REPO="newkirkjosh/dotfiles"
 
 # ─── Profile detection ───────────────────────────────────────────────
 if [ -n "${1:-}" ]; then

@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 A personal Arch Linux workstation setup managed with [chezmoi](https://chezmoi.io). Target: a fresh Arch install running Hyprland, with full dev tooling for Kotlin Multiplatform, Android, Go, Node, and Python.
 
-**Sister repo:** [homeprojects](https://github.com/newkirkj/homeprojects) covers the Proxmox homelab side. Keep workstation concerns here; server concerns there.
+**Sister repo:** [homeprojects](https://github.com/newkirkjosh/homeprojects) covers the Proxmox homelab side. Keep workstation concerns here; server concerns there.
 
 **Hard rule: no credentials anywhere.** No API keys, tokens, SSH keys, passwords. Secrets come from 1Password at apply-time or from a `~/.secrets` file that is git-ignored. Use `<PLACEHOLDER>` convention for anything that varies per machine.
 

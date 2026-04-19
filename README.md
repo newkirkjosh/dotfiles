@@ -2,14 +2,14 @@
 
 Personal Arch Linux + Hyprland workstation setup, managed with [chezmoi](https://chezmoi.io).
 
-Paired with the [homeprojects](https://github.com/newkirkj/homeprojects) repo — this one handles the workstation (Arch), that one handles the homelab (Proxmox).
+Paired with the [homeprojects](https://github.com/newkirkjosh/homeprojects) repo — this one handles the workstation (Arch), that one handles the homelab (Proxmox).
 
 ## Bootstrap
 
 On a fresh Arch install:
 
 ```sh
-curl -sSL https://raw.githubusercontent.com/newkirkj/dotfiles/main/install.sh | sh -s -- desktop
+curl -sSL https://raw.githubusercontent.com/newkirkjosh/dotfiles/main/install.sh | sh -s -- desktop
 ```
 
 The installer:
@@ -49,4 +49,4 @@ docs/                      — setup notes (Hyprland, Android, 1Password, fonts,
 ## Not included
 
 - Anything that's native or obvious on Arch (pacman basics, systemd, kernel config) — defer to the [ArchWiki](https://wiki.archlinux.org).
-- Server/homelab setup — see the [homeprojects](https://github.com/newkirkj/homeprojects) repo.
+- Server/homelab setup — see the [homeprojects](https://github.com/newkirkjosh/homeprojects) repo.
