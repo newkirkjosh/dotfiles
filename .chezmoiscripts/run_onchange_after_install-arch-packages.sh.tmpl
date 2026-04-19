@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Installs official-repo packages from .chezmoidata/packages.yaml (arch.pacman).
+# Reruns only when this script or packages.yaml changes (chezmoi `run_onchange`).
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "arch" "cachyos" "endeavouros" "manjaro" -}}
+
+PACKAGES=(
+{{- range .packages.arch.pacman }}
+    {{ . | quote }}
+{{- end }}
+)
+
+# GPU-conditional
+{{- if .packages.arch.gpu_packages }}
+if lspci | grep -i nvidia >/dev/null 2>&1; then
+    PACKAGES+=(
+{{- range .packages.arch.gpu_packages.nvidia }}
+        {{ . | quote }}
+{{- end }}
+    )
+fi
+{{- end }}
+
+echo "→ Installing ${#PACKAGES[@]} pacman packages"
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ end -}}

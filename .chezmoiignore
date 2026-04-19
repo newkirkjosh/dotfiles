@@ -1,0 +1,12 @@
+# Files in this repo that are NOT applied to the home directory.
+README.md
+CLAUDE.md
+docs/**
+profiles.yaml
+install.sh
+.github/**
+
+# Laptop-only paths skipped on desktop profile
+{{ if ne .profile "laptop" }}
+dot_config/laptop/**
+{{ end }}

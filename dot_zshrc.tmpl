@@ -1,0 +1,74 @@
+{{/* ~/.zshrc — templated for per-machine bits */}}
+
+# ─── History ─────────────────────────────────────────────────────────
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY INC_APPEND_HISTORY
+
+# ─── Completion ──────────────────────────────────────────────────────
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' menu select
+
+# ─── Plugins (standalone, no framework) ──────────────────────────────
+# Installed via pacman: zsh-autosuggestions, zsh-syntax-highlighting, zsh-history-substring-search
+[[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ -r /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh ]] && \
+    source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+
+# Arrow up/down = history substring search (filters by what you've typed)
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# ─── Prompt (Starship) ───────────────────────────────────────────────
+eval "$(starship init zsh)"
+
+# ─── Local secrets (git-ignored; sourced if present) ─────────────────
+[[ -f ~/.secrets ]] && source ~/.secrets
+
+# ─── 1Password SSH agent ─────────────────────────────────────────────
+# Native Linux 1Password: enable SSH agent in Settings → Developer.
+export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
+
+# ─── mise (language version manager) ─────────────────────────────────
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
+
+# ─── Navigation ──────────────────────────────────────────────────────
+alias dev="cd ~/developer"
+alias work="cd ~/developer/work"
+alias personal="cd ~/developer/personal"
+alias sandbox="cd ~/developer/sandbox"
+
+# ─── Tooling shortcuts ───────────────────────────────────────────────
+alias ccd="claude --dangerously-skip-permissions --rc"
+alias ls="eza --icons=auto"
+alias cat="bat --paging=never"
+
+# ─── Git muscle memory (full aliases live in ~/.gitconfig) ───────────
+alias g="git"
+alias gst="git status -sb"
+alias gco="git checkout"
+alias gcb="git checkout -b"
+alias gcm="git commit -m"
+alias gp="git push"
+alias gl="git pull"
+alias gd="git diff"
+alias ga="git add"
+alias glog="git log --oneline --decorate --graph"
+
+# ─── Misc ────────────────────────────────────────────────────────────
+# mkdir + cd
+take() { mkdir -p "$1" && cd "$1"; }
+
+# ─── zoxide (smart cd) ───────────────────────────────────────────────
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+
+export PATH="$HOME/.local/bin:$PATH"

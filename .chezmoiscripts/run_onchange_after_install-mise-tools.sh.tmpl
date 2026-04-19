@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Installs language runtimes via mise.
+
+set -euo pipefail
+
+if ! command -v mise >/dev/null 2>&1; then
+    echo "⚠ mise not installed — skipping. Run install.sh first."
+    exit 0
+fi
+
+{{ range .packages.mise }}
+mise use -g {{ . | quote }}
+{{ end }}

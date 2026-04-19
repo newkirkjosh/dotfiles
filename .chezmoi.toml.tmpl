@@ -1,0 +1,18 @@
+{{/* chezmoi init template — prompts on first `chezmoi init` */}}
+
+{{- $name := promptStringOnce . "name" "Full name (for git)" -}}
+{{- $email := promptStringOnce . "email" "Email (for git)" -}}
+{{- $profile := promptStringOnce . "profile" "Profile (desktop / laptop)" "desktop" -}}
+{{- $signingkey := promptStringOnce . "signingkey" "SSH public key for commit signing (leave blank to skip)" "" -}}
+
+[data]
+    name = {{ $name | quote }}
+    email = {{ $email | quote }}
+    profile = {{ $profile | quote }}
+    signingkey = {{ $signingkey | quote }}
+
+[edit]
+    command = "nvim"
+
+[diff]
+    pager = "delta"

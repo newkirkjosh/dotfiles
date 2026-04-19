@@ -1,0 +1,22 @@
+# chezmoi state
+.chezmoistate
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets — belt and suspenders
+*.secrets
+secrets/
+.env
+.env.local
+
+# Logs
+*.log

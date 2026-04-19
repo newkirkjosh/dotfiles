@@ -1,0 +1,23 @@
+# Ghostty config — shared with macOS work setup where possible.
+# Full reference: https://ghostty.org/docs/config
+
+# ─── Appearance ──────────────────────────────────────────────────────
+theme = tokyonight
+font-family = "JetBrainsMono Nerd Font"
+font-size = 14
+background-opacity = 0.95
+
+# ─── Window ──────────────────────────────────────────────────────────
+window-decoration = false
+window-padding-x = 10
+window-padding-y = 10
+confirm-close-surface = false
+
+# ─── Shell integration ───────────────────────────────────────────────
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+
+# ─── Keybindings ─────────────────────────────────────────────────────
+# Let tmux handle splits/tabs; keep Ghostty out of the way.
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = ctrl+shift+v=paste_from_clipboard
