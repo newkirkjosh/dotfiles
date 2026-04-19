@@ -37,6 +37,15 @@ if ! command -v pacman >/dev/null 2>&1; then
     fail "pacman not found — this installer is Arch-only"
 fi
 
+# ─── Enable multilib (required for Steam + 32-bit libs) ─────────────
+if ! grep -q '^\[multilib\]' /etc/pacman.conf; then
+    step "Enabling [multilib] in /etc/pacman.conf"
+    sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+    sudo pacman -Syy --noconfirm
+else
+    success "multilib already enabled"
+fi
+
 # ─── Prereqs ─────────────────────────────────────────────────────────
 step "Installing prerequisites (git, chezmoi, mise)"
 sudo pacman -Sy --needed --noconfirm git chezmoi base-devel

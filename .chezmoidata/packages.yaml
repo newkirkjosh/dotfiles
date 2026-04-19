@@ -84,6 +84,25 @@ arch:
     - base-devel
     - neovim
 
+    # Gaming — Steam is 32-bit, multilib must be enabled (install.sh does this)
+    - steam
+    - gamescope            # Valve's compositor — use as launch wrapper
+    - gamemode             # Per-game CPU governor tweaks (Feral)
+    - lib32-gamemode
+    - mangohud             # FPS / perf overlay
+    - lib32-mangohud
+    - goverlay             # GUI for MangoHud
+    - lutris               # Non-Steam launcher (Battle.net, Epic fallback, etc.)
+    - wine-staging
+    - winetricks
+    - lib32-mesa           # 32-bit AMD/Intel GPU userspace (harmless alongside NVIDIA)
+    - vulkan-tools
+    - lib32-vulkan-icd-loader
+
+    # Peripherals
+    - piper                # GUI for libratbag (G502 X Lightspeed: DPI/buttons/profiles)
+    - libratbag            # Daemon (ratbagd) — autostarted by piper
+
   # AUR (yay -S)
   aur:
     # Auth
@@ -105,8 +124,12 @@ arch:
     - visual-studio-code-bin
     - android-studio
 
-    # Logitech peripherals — no G-Hub for Linux; solaar handles Unifying devices
-    - solaar
+    # Gaming
+    - heroic-games-launcher-bin   # Epic / GOG / Amazon
+    - protonup-qt                 # Proton-GE version manager
+
+    # Peripherals
+    - headsetcontrol              # G533 battery/sidetone CLI
 
   # Flatpak (last resort — prefer AUR where possible)
   flatpak: []
