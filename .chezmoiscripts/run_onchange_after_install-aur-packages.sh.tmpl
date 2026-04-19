@@ -12,7 +12,7 @@ if ! command -v yay >/dev/null 2>&1; then
 fi
 
 PACKAGES=(
-{{- range .packages.arch.aur }}
+{{- range .arch.aur }}
     {{ . | quote }}
 {{- end }}
 )

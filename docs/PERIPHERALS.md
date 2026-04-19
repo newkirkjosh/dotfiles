@@ -26,7 +26,7 @@ Linux support status and setup for the current hardware.
 
 ## Logitech G533 (wireless headset)
 
-**Works as a plain USB audio device out of the box.** For battery readout, sidetone, and notification sounds, use `headsetcontrol` (in the AUR list).
+**Works as a plain USB audio device out of the box.** For battery readout, sidetone, and notification sounds, use `headsetcontrol` (now in the official `extra` repo).
 
 ### Setup
 

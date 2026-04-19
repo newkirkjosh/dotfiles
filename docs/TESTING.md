@@ -29,9 +29,10 @@ Requires Docker (or `alias docker=podman`). Run from the repo root.
 
 ```sh
 docker run --rm -v "$PWD:/repo" archlinux:latest bash -c '
-  pacman -Sy --noconfirm >/dev/null 2>&1
-  # Enable multilib so 32-bit packages (lib32-*) resolve
-  sed -i "/^#\[multilib\]/,/^#Include/ s/^#//" /etc/pacman.conf
+  # archlinux:latest ships a stripped pacman.conf with no multilib section,
+  # so append it rather than uncommenting. On a real Arch install the sed-based
+  # uncomment in install.sh works because the section is already present but commented.
+  printf "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
   pacman -Sy --noconfirm >/dev/null 2>&1
   pacman -S --noconfirm --needed yq >/dev/null 2>&1
 
@@ -73,20 +74,37 @@ done
 
 ### 4. Render chezmoi templates
 
-Requires `chezmoi` locally (`brew install chezmoi` on WSL, `pacman -S chezmoi` on Arch).
+Requires `chezmoi` locally (`brew install chezmoi` on WSL, `pacman -S chezmoi` on Arch). Most reliable via Docker — pre-seeds a fake config so `.name`/`.email`/etc. resolve without prompting for a TTY:
 
 ```sh
-for f in *.tmpl dot_*.tmpl .chezmoiscripts/*.tmpl; do
-  [ -f "$f" ] || continue
-  chezmoi execute-template \
-    --init --promptString name=test \
-    --promptString email=test@test \
-    --promptString profile=desktop \
-    --promptString signingkey= \
-    < "$f" >/dev/null 2>&1 \
-    && echo "  ✓ $f" || echo "  ✗ $f"
-done
+docker run --rm -v "$PWD:/repo" archlinux:latest bash -c '
+  pacman -Sy --noconfirm --needed chezmoi >/dev/null 2>&1
+  export HOME=$(mktemp -d)
+  mkdir -p "$HOME/.config/chezmoi"
+  cat > "$HOME/.config/chezmoi/chezmoi.toml" <<EOF
+[data]
+    name = "test"
+    email = "test@test"
+    profile = "desktop"
+    signingkey = ""
+EOF
+  fail=0
+  shopt -s nullglob globstar
+  for f in /repo/*.tmpl /repo/dot_*.tmpl /repo/.chezmoiscripts/*.tmpl /repo/dot_config/**/*.tmpl; do
+    [ -f "$f" ] || continue
+    [ "$(basename "$f")" = ".chezmoi.toml.tmpl" ] && continue
+    if chezmoi execute-template --source=/repo < "$f" >/dev/null 2>err; then
+      echo "  ✓ ${f#/repo/}"
+    else
+      echo "  ✗ ${f#/repo/}: $(cat err | head -1)"
+      fail=1
+    fi
+  done
+  exit $fail
+'
 ```
+
+Catches the classic mistake: `.packages.arch.pacman` (wrong — chezmoidata filename is not a key) vs `.arch.pacman` (correct — YAML top-level keys merge directly into template data).
 
 ### One-liner: run all four
 

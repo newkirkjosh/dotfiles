@@ -8,11 +8,11 @@ Notes for the Hyprland desktop setup. Config lives at `dot_config/hypr/hyprland.
 |-------|---------|---------|
 | Compositor | `hyprland` | Core Wayland compositor + tiling WM |
 | Bar | `waybar` | Status bar |
-| Launcher | `rofi-wayland` | App launcher / dmenu replacement |
+| Launcher | `wofi` | wlroots-native app launcher (rofi-wayland was removed from AUR) |
 | Lock screen | `hyprlock` | Screen lock |
 | Idle manager | `hypridle` | Triggers lock/DPMS on inactivity |
 | Screenshot | `hyprshot` | Region / window / output capture |
-| Clipboard manager | `cliphist` + `wl-clipboard` | History via rofi |
+| Clipboard manager | `cliphist` + `wl-clipboard` | History via wofi |
 | Polkit agent | `polkit-kde-agent` | Auth prompts for sudo GUI actions |
 | Portals | `xdg-desktop-portal-hyprland` + `-gtk` | File pickers, screen sharing |
 | Login manager | `greetd` + `greetd-tuigreet` | TTY-based greeter → Hyprland |

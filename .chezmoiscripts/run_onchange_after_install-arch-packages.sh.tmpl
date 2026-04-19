@@ -7,16 +7,16 @@ set -euo pipefail
 {{ if eq .chezmoi.osRelease.id "arch" "cachyos" "endeavouros" "manjaro" -}}
 
 PACKAGES=(
-{{- range .packages.arch.pacman }}
+{{- range .arch.pacman }}
     {{ . | quote }}
 {{- end }}
 )
 
 # GPU-conditional
-{{- if .packages.arch.gpu_packages }}
+{{- if .arch.gpu_packages }}
 if lspci | grep -i nvidia >/dev/null 2>&1; then
     PACKAGES+=(
-{{- range .packages.arch.gpu_packages.nvidia }}
+{{- range .arch.gpu_packages.nvidia }}
         {{ . | quote }}
 {{- end }}
     )

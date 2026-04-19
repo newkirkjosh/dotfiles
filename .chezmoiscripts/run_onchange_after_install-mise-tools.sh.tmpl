@@ -8,6 +8,6 @@ if ! command -v mise >/dev/null 2>&1; then
     exit 0
 fi
 
-{{ range .packages.mise }}
+{{ range .mise }}
 mise use -g {{ . | quote }}
 {{ end }}

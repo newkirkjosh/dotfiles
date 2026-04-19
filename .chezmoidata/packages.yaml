@@ -49,7 +49,7 @@ arch:
     - curl
 
     # App launcher / clipboard / screenshot helpers
-    - rofi-wayland
+    - wofi                 # wlroots-native launcher (rofi-wayland is no longer packaged)
     - cliphist
     - wl-clipboard
     - grim
@@ -102,6 +102,11 @@ arch:
     # Peripherals
     - piper                # GUI for libratbag (G502 X Lightspeed: DPI/buttons/profiles)
     - libratbag            # Daemon (ratbagd) — autostarted by piper
+    - headsetcontrol       # G533 battery/sidetone CLI
+
+    # Desktop apps (now in official repos — no AUR needed)
+    - discord
+    - obsidian
 
   # AUR (yay -S)
   aur:
@@ -113,11 +118,9 @@ arch:
     - brave-bin
 
     # Communication
-    - discord
     - slack-desktop
 
     # Productivity
-    - obsidian
     - spotify
 
     # Dev
@@ -127,9 +130,6 @@ arch:
     # Gaming
     - heroic-games-launcher-bin   # Epic / GOG / Amazon
     - protonup-qt                 # Proton-GE version manager
-
-    # Peripherals
-    - headsetcontrol              # G533 battery/sidetone CLI
 
   # Flatpak (last resort — prefer AUR where possible)
   flatpak: []
