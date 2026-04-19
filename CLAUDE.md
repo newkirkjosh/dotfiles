@@ -21,7 +21,7 @@ A personal Arch Linux workstation setup managed with [chezmoi](https://chezmoi.i
 | `dot_zshrc.tmpl` | `~/.zshrc`, templated for per-machine branches |
 | `install.sh` | Bootstrap entrypoint (`curl | sh -s -- <profile>`) |
 | `profiles.yaml` | Profile definitions (`desktop`, `laptop`) |
-| `docs/` | Setup notes — read these before touching related configs. Includes `GAMING.md` (Steam/Proton/anti-cheat) and `PERIPHERALS.md` (G502X, G533, C922, Yeti). |
+| `docs/` | Setup notes — read these before touching related configs. Includes `GAMING.md` (Steam/Proton/anti-cheat), `PERIPHERALS.md` (G502X, G533, C922, Yeti), and `TESTING.md` (pre-flight smoke test). |
 
 ## Conventions
 
