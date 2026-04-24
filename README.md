@@ -2,8 +2,6 @@
 
 Personal Arch Linux + Hyprland workstation setup, managed with [chezmoi](https://chezmoi.io).
 
-Paired with the [homeprojects](https://github.com/newkirkjosh/homeprojects) repo — this one handles the workstation (Arch), that one handles the homelab (Proxmox).
-
 ## Bootstrap
 
 On a fresh Arch install:
@@ -45,8 +43,3 @@ docs/                      — setup notes (Hyprland, Android, 1Password, fonts,
 - **No credentials in the repo.** Secrets come from 1Password at apply-time (or from a `~/.secrets` file that's git-ignored).
 - Templates use chezmoi's Go-template syntax; per-machine or per-profile branches live in `.tmpl` files.
 - Package lists are declarative — edit `packages.yaml`, run `chezmoi apply`, the install scripts handle the rest.
-
-## Not included
-
-- Anything that's native or obvious on Arch (pacman basics, systemd, kernel config) — defer to the [ArchWiki](https://wiki.archlinux.org).
-- Server/homelab setup — see the [homeprojects](https://github.com/newkirkjosh/homeprojects) repo.

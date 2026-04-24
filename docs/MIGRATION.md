@@ -64,6 +64,6 @@ git log --show-signature -1         # signature verified
 
 1. Sign in to 1Password, enable SSH agent
 2. `gh auth login` (uses 1P SSH key)
-3. Clone homeprojects, dotfiles (already cloned via chezmoi, but the working dir is `~/.local/share/chezmoi`)
+3. Dotfiles are already cloned via chezmoi — working dir is `~/.local/share/chezmoi`
 4. Run `mise install` to materialize the pinned versions
 5. `chezmoi apply` to re-run any pending scripts
