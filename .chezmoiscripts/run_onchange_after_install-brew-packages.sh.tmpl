@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Installs Homebrew packages for Bazzite (host-side CLI tools).
+# Reruns when this script or packages.yaml changes.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+if ! command -v brew >/dev/null 2>&1; then
+    # Attempt to source brew shellenv in case it's installed but not on PATH
+    if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    else
+        echo "⚠ brew not installed — run install.sh first"
+        exit 0
+    fi
+fi
+
+PACKAGES=(
+{{- range .bazzite.brew }}
+    {{ . | quote }}
+{{- end }}
+)
+
+echo "→ Installing ${#PACKAGES[@]} brew packages"
+brew install "${PACKAGES[@]}"
+
+{{ end -}}

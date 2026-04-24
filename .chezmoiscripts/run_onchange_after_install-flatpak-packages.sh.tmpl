@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Installs Flatpak apps from .chezmoidata/packages.yaml (bazzite.flatpak).
+# Reruns when this script or packages.yaml changes.
+#
+# --user scope keeps Flatpaks out of the system image so they survive rebases.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+if ! command -v flatpak >/dev/null 2>&1; then
+    echo "⚠ flatpak not found — skipping"
+    exit 0
+fi
+
+PACKAGES=(
+{{- range .bazzite.flatpak }}
+    {{ . | quote }}
+{{- end }}
+)
+
+echo "→ Installing ${#PACKAGES[@]} Flatpak apps (user scope)"
+flatpak install --user --assumeyes --noninteractive flathub "${PACKAGES[@]}"
+
+{{ end -}}

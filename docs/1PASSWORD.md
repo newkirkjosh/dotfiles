@@ -2,12 +2,17 @@
 
 Replaces the WSL setup (npiperelay + socat bridge) — Linux 1Password has a native SSH agent.
 
+> **Bazzite users:** see `docs/BAZZITE.md` for the Flatpak-specific setup
+> (socket path, `op-ssh-sign` location, sandbox permissions). The SSH-agent
+> workflow and commit-signing concepts in this doc still apply, but install
+> paths differ.
+
 ## Install
 
 Handled by `packages.yaml`:
 
-- `1password` — GUI app
-- `1password-cli` — `op` command-line tool
+- **Arch:** `1password` (AUR GUI) + `1password-cli`
+- **Bazzite:** `com.onepassword.OnePassword` (Flatpak GUI) + `1password-cli` (brew)
 
 ## Enable the SSH agent
 

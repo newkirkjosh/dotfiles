@@ -25,7 +25,11 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
 # ─── Prompt (Starship) ───────────────────────────────────────────────
-eval "$(starship init zsh)"
+# On Bazzite, starship lives inside the arch-dev distrobox, not on the host.
+# The guard lets the same zshrc boot cleanly in both places.
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
 # ─── Local secrets (git-ignored; sourced if present) ─────────────────
 [[ -f ~/.secrets ]] && source ~/.secrets

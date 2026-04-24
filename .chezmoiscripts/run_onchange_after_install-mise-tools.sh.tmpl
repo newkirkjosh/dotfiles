@@ -1,7 +1,34 @@
 #!/usr/bin/env bash
 # Installs language runtimes via mise.
+# - Arch: installs on the host.
+# - Bazzite: installs inside the arch-dev distrobox (where dev work lives).
 
 set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+CONTAINER="{{ .bazzite.distrobox.name }}"
+
+if ! command -v distrobox >/dev/null 2>&1; then
+    echo "⚠ distrobox not found — skipping mise setup"
+    exit 0
+fi
+
+if ! distrobox list | awk '{print $3}' | grep -qx "$CONTAINER"; then
+    echo "⚠ distrobox '$CONTAINER' not found — run setup-distrobox first"
+    exit 0
+fi
+
+if ! distrobox enter "$CONTAINER" -- command -v mise >/dev/null 2>&1; then
+    echo "→ [$CONTAINER] installing mise"
+    distrobox enter "$CONTAINER" -- bash -c 'curl -fsSL https://mise.run | sh'
+fi
+
+{{ range .mise }}
+distrobox enter "$CONTAINER" -- mise use -g {{ . | quote }}
+{{ end }}
+
+{{ else -}}
 
 if ! command -v mise >/dev/null 2>&1; then
     echo "⚠ mise not installed — skipping. Run install.sh first."
@@ -11,3 +38,5 @@ fi
 {{ range .mise }}
 mise use -g {{ . | quote }}
 {{ end }}
+
+{{ end -}}

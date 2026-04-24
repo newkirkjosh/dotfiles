@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Creates the arch-dev distrobox and installs Arch userland dev tools inside it.
+# This is where pacman + AUR workflow lives on Bazzite.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+{{- $name  := .bazzite.distrobox.name -}}
+{{- $image := .bazzite.distrobox.image -}}
+
+if ! command -v distrobox >/dev/null 2>&1; then
+    echo "⚠ distrobox not found on host — should ship with Bazzite. Aborting."
+    exit 1
+fi
+
+# ─── Create container if absent ──────────────────────────────────────
+if ! distrobox list | awk '{print $3}' | grep -qx "{{ $name }}"; then
+    echo "→ Creating distrobox '{{ $name }}' from {{ $image }}"
+    distrobox create \
+        --name "{{ $name }}" \
+        --image "{{ $image }}" \
+        --yes
+else
+    echo "✓ distrobox '{{ $name }}' already exists"
+fi
+
+# ─── pacman packages ─────────────────────────────────────────────────
+PACMAN_PACKAGES=(
+{{- range .bazzite.distrobox.pacman }}
+    {{ . | quote }}
+{{- end }}
+)
+
+echo "→ [{{ $name }}] pacman -Syu + installing ${#PACMAN_PACKAGES[@]} packages"
+distrobox enter "{{ $name }}" -- \
+    sudo pacman -Syu --needed --noconfirm "${PACMAN_PACKAGES[@]}"
+
+# ─── Bootstrap yay if absent ─────────────────────────────────────────
+if ! distrobox enter "{{ $name }}" -- command -v yay >/dev/null 2>&1; then
+    echo "→ [{{ $name }}] bootstrapping yay"
+    distrobox enter "{{ $name }}" -- bash -c '
+        set -e
+        tmp=$(mktemp -d)
+        git clone https://aur.archlinux.org/yay-bin.git "$tmp/yay-bin"
+        (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
+        rm -rf "$tmp"
+    '
+fi
+
+# ─── AUR packages ────────────────────────────────────────────────────
+AUR_PACKAGES=(
+{{- range .bazzite.distrobox.aur }}
+    {{ . | quote }}
+{{- end }}
+)
+
+if [ "${#AUR_PACKAGES[@]}" -gt 0 ]; then
+    echo "→ [{{ $name }}] installing ${#AUR_PACKAGES[@]} AUR packages"
+    distrobox enter "{{ $name }}" -- \
+        yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
+fi
+
+# ─── Surface dev GUI apps to host launcher ───────────────────────────
+EXPORT_APPS=(
+{{- range .bazzite.distrobox.export_apps }}
+    {{ . | quote }}
+{{- end }}
+)
+
+for app in "${EXPORT_APPS[@]}"; do
+    echo "→ [{{ $name }}] exporting $app to host launcher"
+    distrobox enter "{{ $name }}" -- distrobox-export --app "$app" 2>/dev/null || \
+        echo "  ⚠ $app not installed in container — skipping export"
+done
+
+echo
+echo "✓ distrobox '{{ $name }}' ready."
+echo "  Enter:         distrobox enter {{ $name }}"
+echo "  Export GUI:    distrobox enter {{ $name }} -- distrobox-export --app <name>"
+echo "  Rebuild:       distrobox rm {{ $name }} && chezmoi apply"
+
+{{ end -}}

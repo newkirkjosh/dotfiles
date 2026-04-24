@@ -1,6 +1,11 @@
-# Declarative package lists.
-# Packages here are installed by the run_onchange_after_install-*-packages.sh.tmpl scripts
-# in .chezmoiscripts/, which rerun only when this file changes.
+# Declarative package lists, consumed by scripts in .chezmoiscripts/.
+# Each script is guarded by .chezmoi.osRelease.id so only the relevant
+# section installs on a given host.
+#
+# Layout:
+#   arch:     pacman + AUR + GPU-conditional packages for Arch-family distros
+#   bazzite:  flatpak + brew + ujust + distrobox for Bazzite/Fedora Atomic
+#   mise:     language runtimes, shared (host on arch; inside distrobox on bazzite)
 
 arch:
   # Official repos (pacman -S)
@@ -131,9 +136,6 @@ arch:
     - heroic-games-launcher-bin   # Epic / GOG / Amazon
     - protonup-qt                 # Proton-GE version manager
 
-  # Flatpak (last resort — prefer AUR where possible)
-  flatpak: []
-
   # GPU-conditional (installed only when matching GPU is detected)
   gpu_packages:
     nvidia:
@@ -142,7 +144,98 @@ arch:
       - egl-wayland
       - nvidia-container-toolkit
 
-# Tools managed via mise (installed in run_onchange_after_install-mise-tools.sh.tmpl)
+
+bazzite:
+  # Flatpak = GUI apps that AREN'T dev tools (chat, media, auth, gaming extras).
+  # Dev GUIs (Warp, Android Studio, etc.) live in the distrobox, not here.
+  # Installed at --user scope so they survive rebases cleanly.
+  flatpak:
+    # Auth — Flathub package is a thin wrapper that downloads the official 1Password
+    # tarball from downloads.1password.com at install time. Binary is bit-identical to
+    # what you'd get from 1password.com; manifest auto-tracks upstream releases.
+    # Not "verified" on Flathub only because AgileBits didn't claim the listing itself.
+    # SSH agent works — set socket path to ~/.1password/agent.sock in 1Password settings.
+    - com.onepassword.OnePassword
+    # Browser
+    - com.brave.Browser
+    # Communication
+    - com.discordapp.Discord
+    - com.slack.Slack
+    # Productivity
+    - md.obsidian.Obsidian
+    - com.spotify.Client
+    # Gaming extras not shipped in Bazzite base
+    - net.davidotek.pupgui2                  # ProtonUp-Qt (Proton-GE manager)
+    - io.github.benjamimgois.goverlay        # MangoHud GUI
+    - com.usebottles.bottles                 # modern wine wrapper
+    # Peripherals
+    - org.freedesktop.Piper                  # G502X — talks to host ratbagd
+
+  # Host brew = minimal. Only what the host shell / chezmoi needs.
+  # All dev CLI tooling lives inside the distrobox.
+  brew:
+    - chezmoi
+    - 1password-cli           # occasional host-side secret retrieval at apply-time
+
+  # Bazzite ujust one-liners — curated post-install helpers.
+  # Safer than rpm-ostree layering; explore more with `ujust --list`.
+  ujust:
+    - install-nvidia-extras   # guarded in script: only runs if nvidia GPU detected
+
+  # Arch userland inside Distrobox — primary dev environment.
+  # Dotfiles are shared via the home dir; same ~/.zshrc applies here.
+  distrobox:
+    name: arch-dev
+    image: quay.io/toolbx-images/archlinux-toolbox:latest
+
+    pacman:
+      # Build essentials
+      - base-devel
+      - git
+      - github-cli
+      - openssh
+
+      # Shell experience
+      - zsh
+      - zsh-autosuggestions
+      - zsh-syntax-highlighting
+      - zsh-completions
+      - zsh-history-substring-search
+      - starship
+      - tmux
+
+      # CLI tooling
+      - neovim
+      - ripgrep
+      - fd
+      - fzf
+      - bat
+      - eza
+      - zoxide
+      - jq
+      - yq
+      - unzip
+      - rsync
+      - wget
+      - curl
+
+      # Optional container workflows inside the dev env
+      - docker
+      - docker-compose
+
+      # Peripherals accessible from inside the container
+      - headsetcontrol          # G533 battery/sidetone CLI (USB HID passes through)
+
+    aur:
+      - yay                     # bootstrapped by setup-distrobox script
+      - android-studio          # KMP/Android
+
+    # GUI dev apps surfaced to host launcher via `distrobox-export --app`.
+    export_apps:
+      - android-studio
+
+
+# Shared across distros. Applied on host for arch, inside distrobox for bazzite.
 mise:
   - java@21           # KMP / Android / general JVM
   - node@lts          # frontend + Claude Code tooling
