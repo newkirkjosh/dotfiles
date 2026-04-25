@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Runs Bazzite ujust one-liners listed in .chezmoidata/packages.yaml (bazzite.ujust).
+# Reruns when this script or packages.yaml changes.
+#
+# GPU-conditional recipes (anything with "nvidia" in the name) are skipped on
+# non-NVIDIA hosts so the same packages.yaml works across machines.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" -}}
+
+if ! command -v ujust >/dev/null 2>&1; then
+    echo "⚠ ujust not found — not on a Bazzite/uBlue image. Skipping."
+    exit 0
+fi
+
+HAS_NVIDIA=0
+if lspci -nn 2>/dev/null | grep -qiE '(vga|3d).*nvidia'; then
+    HAS_NVIDIA=1
+fi
+
+RECIPES=(
+{{- range .bazzite.ujust }}
+    {{ . | quote }}
+{{- end }}
+)
+
+for recipe in "${RECIPES[@]}"; do
+    case "$recipe" in
+        *nvidia*)
+            if [ "$HAS_NVIDIA" -eq 1 ]; then
+                echo "→ ujust $recipe"
+                ujust "$recipe"
+            else
+                echo "⊘ skipping '$recipe' (no NVIDIA GPU detected)"
+            fi
+            ;;
+        *)
+            echo "→ ujust $recipe"
+            ujust "$recipe"
+            ;;
+    esac
+done
+
+{{ end -}}
