@@ -2,17 +2,16 @@
 
 Replaces the WSL setup (npiperelay + socat bridge) — Linux 1Password has a native SSH agent.
 
-> **Bazzite users:** see `docs/BAZZITE.md` for the Flatpak-specific setup
-> (socket path, `op-ssh-sign` location, sandbox permissions). The SSH-agent
-> workflow and commit-signing concepts in this doc still apply, but install
-> paths differ.
+> **Bazzite users:** see `docs/BAZZITE.md` for the rpm-ostree layered install
+> rationale and the rebuild/reboot lifecycle. The SSH-agent workflow and
+> commit-signing instructions in this doc apply identically.
 
 ## Install
 
 Handled by `packages.yaml`:
 
 - **Arch:** `1password` (AUR GUI) + `1password-cli`
-- **Bazzite:** `com.onepassword.OnePassword` (Flatpak GUI) + `1password-cli` (brew)
+- **Bazzite:** `1password` (rpm-ostree layered) + `1password-cli` (brew)
 
 ## Enable the SSH agent
 
@@ -42,7 +41,7 @@ git config --global commit.gpgsign true
 git config --global gpg.ssh.program /opt/1Password/op-ssh-sign
 ```
 
-The path differs slightly per distro — confirm with `pacman -Ql 1password | grep op-ssh-sign` after install.
+Path by distro: Arch is `/opt/1Password/op-ssh-sign` (confirm with `pacman -Ql 1password | grep op-ssh-sign`). Bazzite is the same `/opt/1Password/op-ssh-sign` since the rpm-ostree layered package mirrors the Arch layout.
 
 ## CLI usage
 

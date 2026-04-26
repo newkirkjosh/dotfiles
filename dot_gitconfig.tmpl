@@ -37,8 +37,12 @@
 [gpg "ssh"]
     # Path differs per distro — verify with: pacman -Ql 1password | grep op-ssh-sign
     program = "/opt/1Password/op-ssh-sign"
+    allowedSignersFile = "~/.config/git/allowed_signers"
 
 [commit]
+    gpgsign = true
+
+[tag]
     gpgsign = true
 {{- end }}
 

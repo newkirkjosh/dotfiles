@@ -7,7 +7,7 @@ then work through the checklist below.
 ## First-boot checklist
 
 1. `brh list` — confirm the atomic rollback helper is ready
-2. Sign in to **1Password** (Flatpak) → enable SSH agent → set socket path to `~/.1password/agent.sock`
+2. Sign in to **1Password** (rpm-ostree layered) → enable SSH agent → confirm socket at `~/.1password/agent.sock`
 3. `sudo systemctl enable --now ratbagd.service` — then launch **Piper** to bind the G502X
 4. Configure **Ghostty** to auto-enter the `arch-dev` distrobox (see below)
 5. Open a terminal, run `distrobox enter arch-dev`, confirm `mise`, `starship`, `tmux` are live
@@ -16,21 +16,38 @@ then work through the checklist below.
 
 The rest of this doc expands each item.
 
-## 1Password (Flatpak)
+## 1Password (rpm-ostree layered)
 
-### Nature of the Flathub package
+### Why layered, not Flatpak
 
-`com.onepassword.OnePassword` is a manifest wrapper — it downloads the official
-tarball from `downloads.1password.com` at install time with a pinned SHA-256.
-The binary that runs is bit-identical to the .deb/.rpm 1Password publishes.
-Upstream releases are auto-tracked via the manifest's `x-checker-data`.
+The Flathub package works for the GUI and SSH agent, but the native install
+wins on three integration points that the sandbox makes awkward:
+
+- **Browser native messaging** — 1Password browser extensions talk to the
+  desktop app over a native-messaging host. Flatpak's sandbox requires extra
+  manifest hops; the rpm package wires it up directly.
+- **`op-ssh-sign` path stability** — lives at `/opt/1Password/op-ssh-sign`,
+  not buried under a Flatpak revision dir that changes on every update.
+- **Distrobox reachability** — the agent socket at `~/.1password/agent.sock`
+  is in `$HOME` either way, but the native daemon has no sandbox to confuse
+  the path or permissions.
+
+Cost: layered packages need a reboot to apply and persist across rebases as
+extra deployment work. Worth it for the auth daemon.
+
+### Install
+
+Declarative, via `.chezmoidata/packages.yaml` → `bazzite.rpm_ostree`. The
+`.chezmoiscripts/run_onchange_before_install-rpm-ostree-packages.sh.tmpl`
+script runs `sudo rpm-ostree install` for anything missing. **Reboot after
+first apply** for the layer to become active.
 
 ### Setup
 
 1. Launch 1Password. Sign in.
 2. **Settings → Developer → Use the SSH agent** — toggle on.
-3. **Settings → Developer → SSH agent socket path**: set to `$HOME/.1password/agent.sock`.
-   Matches the `SSH_AUTH_SOCK` export already in `~/.zshrc`.
+3. **Settings → Developer → SSH agent socket path**: confirm `$HOME/.1password/agent.sock`
+   (default). Matches the `SSH_AUTH_SOCK` export already in `~/.zshrc`.
 4. Verify — in any shell (host or distrobox):
    ```sh
    ssh-add -l
@@ -39,22 +56,14 @@ Upstream releases are auto-tracked via the manifest's `x-checker-data`.
 
 ### Commit signing
 
-`op-ssh-sign` lives inside the Flatpak sandbox. Point git at it:
+`op-ssh-sign` lives at a stable path on the native install:
 
 ```sh
-# Find the sandbox path
-flatpak info --show-location com.onepassword.OnePassword
-# Then point git at <location>/files/share/1Password/op-ssh-sign, e.g.:
 git config --global gpg.format ssh
-git config --global gpg.ssh.program ~/.local/share/flatpak/app/com.onepassword.OnePassword/current/active/files/share/1Password/op-ssh-sign
+git config --global gpg.ssh.program /opt/1Password/op-ssh-sign
+git config --global user.signingkey "ssh-ed25519 AAAA..."   # public key from 1Password
 git config --global commit.gpgsign true
 ```
-
-### "Potentially unsafe" permissions
-
-The Flatpak manifest requests `--device=all`, `--share=network`, and
-`--filesystem=xdg-download`. `--device=all` is the broad one — required for
-USB/YubiKey/biometric support. Not a red flag, but worth knowing.
 
 ## Peripherals — ratbagd for Piper (G502X)
 

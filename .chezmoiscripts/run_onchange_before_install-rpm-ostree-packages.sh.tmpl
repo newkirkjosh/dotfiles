@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Layers rpm-ostree packages from .chezmoidata/packages.yaml (bazzite.rpm_ostree).
+# Reruns when this script or packages.yaml changes.
+#
+# Runs `before` other install scripts because layering triggers a deployment
+# stage; subsequent scripts (flatpak, brew) operate on the live system and
+# don't need the new layer to be active mid-apply.
+#
+# A reboot is required for newly layered packages to become active.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" -}}
+
+if ! command -v rpm-ostree >/dev/null 2>&1; then
+    echo "⚠ rpm-ostree not found — skipping"
+    exit 0
+fi
+
+DESIRED=(
+{{- range .bazzite.rpm_ostree }}
+    {{ . | quote }}
+{{- end }}
+)
+
+if [ ${#DESIRED[@]} -eq 0 ]; then
+    exit 0
+fi
+
+# Layered packages on the *staged* deployment if one is pending, else the booted one.
+# Looking at booted==false is wrong — that picks the rollback target which has its own
+# (older) requested set and would cause us to re-layer everything.
+LAYERED=$(rpm-ostree status --json | jq -r '
+    (   (.deployments | map(select(.staged == true)) | first)
+     // (.deployments | map(select(.booted == true)) | first)
+     // .deployments[0]
+    )
+    | ((."requested-packages" // []) + (."requested-local-packages" // []))
+    | .[]
+')
+
+MISSING=()
+for pkg in "${DESIRED[@]}"; do
+    if ! grep -qx "$pkg" <<<"$LAYERED"; then
+        MISSING+=("$pkg")
+    fi
+done
+
+if [ ${#MISSING[@]} -eq 0 ]; then
+    echo "✓ rpm-ostree layered packages already present"
+    exit 0
+fi
+
+echo "→ Layering ${#MISSING[@]} rpm-ostree package(s): ${MISSING[*]}"
+sudo rpm-ostree install --idempotent --assumeyes "${MISSING[@]}"
+echo "⚠ Reboot required for newly layered packages to become active."
+
+{{ end -}}

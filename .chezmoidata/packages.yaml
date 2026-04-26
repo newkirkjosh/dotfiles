@@ -146,16 +146,20 @@ arch:
 
 
 bazzite:
+  # rpm-ostree layered packages — system-level, persisted across rebases.
+  # Reserve for things that must run outside a sandbox (native messaging hosts,
+  # SSH agents that other host processes need to reach, kernel-adjacent tools).
+  # Prefer flatpak/brew/distrobox for everything else.
+  rpm_ostree:
+    # 1Password — native install required so op-ssh-sign and the agent socket
+    # at ~/.1password/agent.sock are reachable from host shells, distrobox, and
+    # browser native-messaging without sandbox path translation.
+    - 1password
+
   # Flatpak = GUI apps that AREN'T dev tools (chat, media, auth, gaming extras).
   # Dev GUIs (Warp, Android Studio, etc.) live in the distrobox, not here.
   # Installed at --user scope so they survive rebases cleanly.
   flatpak:
-    # Auth — Flathub package is a thin wrapper that downloads the official 1Password
-    # tarball from downloads.1password.com at install time. Binary is bit-identical to
-    # what you'd get from 1password.com; manifest auto-tracks upstream releases.
-    # Not "verified" on Flathub only because AgileBits didn't claim the listing itself.
-    # SSH agent works — set socket path to ~/.1password/agent.sock in 1Password settings.
-    - com.onepassword.OnePassword
     # Browser
     - com.brave.Browser
     # Communication

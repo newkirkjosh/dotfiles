@@ -1,0 +1,5 @@
+{{- /* Git SSH signature verification — referenced by ~/.gitconfig gpg.ssh.allowedSignersFile.
+       Format: <principal> <key-type> <key>  — principal is the email used in [user].email. */ -}}
+{{- if .signingkey -}}
+{{ .email }} {{ .signingkey }}
+{{ end -}}

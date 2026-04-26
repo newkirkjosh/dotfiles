@@ -17,6 +17,13 @@ confirm-close-surface = false
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
 
+{{ if eq .chezmoi.osRelease.id "bazzite" -}}
+# ─── Bazzite: enter arch-dev distrobox by default ────────────────────
+# Every new Ghostty window lands inside the container. Escape hatch for a
+# host shell: `ghostty --command=/bin/zsh`.
+command = distrobox enter arch-dev
+
+{{ end -}}
 # ─── Keybindings ─────────────────────────────────────────────────────
 # Let tmux handle splits/tabs; keep Ghostty out of the way.
 keybind = ctrl+shift+c=copy_to_clipboard
