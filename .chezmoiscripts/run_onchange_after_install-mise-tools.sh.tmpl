@@ -24,8 +24,19 @@ if ! distrobox enter "$CONTAINER" -- command -v mise >/dev/null 2>&1; then
     distrobox enter "$CONTAINER" -- bash -c 'curl -fsSL https://mise.run | sh'
 fi
 
+# mise refuses to read a pre-existing ~/.config/mise/config.toml unless the
+# user has explicitly trusted it. `mise use -g` reads it.
+#
+# Bazzite quirk: $HOME inside the distrobox is /home/$USER, but mise reports
+# the config path as /var/home/$USER/.config/mise/config.toml — the host's
+# canonical form, leaking through despite the container having no such path.
+# `mise trust` resolves to the wrong prefix (/home/$USER), so its registered
+# trust never matches the lookup. MISE_TRUSTED_CONFIG_PATHS sidesteps the
+# whole dance by trusting both prefixes declaratively.
+TRUSTED_PREFIXES="$HOME/.config:/var/home/$USER/.config"
+
 {{ range .mise }}
-distrobox enter "$CONTAINER" -- mise use -g {{ . | quote }}
+distrobox enter "$CONTAINER" -- env "MISE_TRUSTED_CONFIG_PATHS=$TRUSTED_PREFIXES" mise use -g {{ . | quote }}
 {{ end }}
 
 {{ else -}}
@@ -34,6 +45,9 @@ if ! command -v mise >/dev/null 2>&1; then
     echo "⚠ mise not installed — skipping. Run install.sh first."
     exit 0
 fi
+
+# See Bazzite quirk comment above; on Arch host the prefix split is harmless.
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/.config:/var/home/$USER/.config"
 
 {{ range .mise }}
 mise use -g {{ . | quote }}

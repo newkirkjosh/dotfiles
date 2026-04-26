@@ -39,6 +39,10 @@ fi
 export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 
 # ─── mise (language version manager) ─────────────────────────────────
+# Bazzite quirk: $HOME is /home/$USER inside distrobox but mise resolves
+# config paths via /var/home/$USER. Trust both prefixes declaratively so
+# `mise trust` doesn't silently fail to match.
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/.config:/var/home/$USER/.config"
 if command -v mise >/dev/null 2>&1; then
   eval "$(mise activate zsh)"
 fi

@@ -190,7 +190,7 @@ bazzite:
   # Dotfiles are shared via the home dir; same ~/.zshrc applies here.
   distrobox:
     name: arch-dev
-    image: quay.io/toolbx-images/archlinux-toolbox:latest
+    image: quay.io/toolbx/arch-toolbox:latest
 
     pacman:
       # Build essentials
@@ -231,7 +231,8 @@ bazzite:
       - headsetcontrol          # G533 battery/sidetone CLI (USB HID passes through)
 
     aur:
-      - yay                     # bootstrapped by setup-distrobox script
+      # yay itself is provided by the yay-bin bootstrap in setup-distrobox.sh.
+      # Listing it here too causes a yay vs yay-bin conflict.
       - android-studio          # KMP/Android
 
     # GUI dev apps surfaced to host launcher via `distrobox-export --app`.
