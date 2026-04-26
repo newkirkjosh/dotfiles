@@ -180,6 +180,7 @@ bazzite:
   brew:
     - chezmoi
     - 1password-cli           # occasional host-side secret retrieval at apply-time
+    - gh                      # GitHub CLI — host-side; arch-dev has its own copy via pacman
 
   # Bazzite ujust one-liners — curated post-install helpers.
   # Safer than rpm-ostree layering; explore more with `ujust --list`.

@@ -46,11 +46,16 @@
     gpgsign = true
 {{- end }}
 
+{{ if ne .chezmoi.osRelease.id "bazzite" -}}
+{{/* On Bazzite, /usr/bin is read-only (ostree) and gh lives under brew.
+     Use SSH remotes (git@github.com:...) so pushes go through the 1Password
+     SSH agent. The HTTPS credential helper here would only resolve on Arch. */}}
 [credential "https://github.com"]
     helper = !/usr/bin/gh auth git-credential
 
 [credential "https://gist.github.com"]
     helper = !/usr/bin/gh auth git-credential
+{{- end }}
 
 [alias]
     st = status -sb
