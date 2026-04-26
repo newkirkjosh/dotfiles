@@ -224,6 +224,12 @@ bazzite:
       - wget
       - curl
 
+      # Quality-of-life CLI
+      - openssh                 # ssh-keygen / ssh-add inside the container
+      - git-delta               # better diffs for git + chezmoi pager
+      - lazygit                 # git TUI
+      - btop                    # modern process / resource viewer
+
       # Optional container workflows inside the dev env
       - docker
       - docker-compose
@@ -235,10 +241,12 @@ bazzite:
       # yay itself is provided by the yay-bin bootstrap in setup-distrobox.sh.
       # Listing it here too causes a yay vs yay-bin conflict.
       - android-studio          # KMP/Android
+      - ghostty                 # GPU-accelerated terminal — exported to host launcher
 
     # GUI dev apps surfaced to host launcher via `distrobox-export --app`.
     export_apps:
       - android-studio
+      - ghostty
 
 
 # Shared across distros. Applied on host for arch, inside distrobox for bazzite.

@@ -17,13 +17,12 @@ confirm-close-surface = false
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
 
-{{ if eq .chezmoi.osRelease.id "bazzite" -}}
-# ─── Bazzite: enter arch-dev distrobox by default ────────────────────
-# Every new Ghostty window lands inside the container. Escape hatch for a
-# host shell: `ghostty --command=/bin/zsh`.
-command = distrobox enter arch-dev
+# ─── Bazzite: no auto-enter needed ───────────────────────────────────
+# Ghostty itself is installed inside the arch-dev container (AUR) and
+# exported to the host launcher via distrobox-export. Launching Ghostty
+# from KDE already runs it inside arch-dev — re-entering would nest.
+# Escape hatch for a host shell: `distrobox-host-exec bash` from inside.
 
-{{ end -}}
 # ─── Keybindings ─────────────────────────────────────────────────────
 # Let tmux handle splits/tabs; keep Ghostty out of the way.
 keybind = ctrl+shift+c=copy_to_clipboard
