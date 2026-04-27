@@ -32,8 +32,15 @@ fi
 
 # mise activates node lazily; `mise exec` guarantees npm is on PATH regardless
 # of how the container shell is configured.
+#
+# Bazzite quirk: distrobox enter -- <cmd> doesn't source ~/.zshrc, so
+# MISE_TRUSTED_CONFIG_PATHS must be passed explicitly or mise refuses to
+# read its config. Mirrors install-mise-tools.sh.tmpl.
+TRUSTED_PREFIXES="$HOME/.config:/var/home/$USER/.config"
+
 echo "→ [$CONTAINER] installing ${#NPM_GLOBALS[@]} npm global package(s)"
 distrobox enter "$CONTAINER" -- \
+    env "MISE_TRUSTED_CONFIG_PATHS=$TRUSTED_PREFIXES" \
     mise exec -- npm install -g "${NPM_GLOBALS[@]}"
 
 {{ end -}}
