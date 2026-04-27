@@ -109,6 +109,18 @@ bazzite:
       - android-studio
       - ghostty
 
+    # npm globals installed inside the container after mise provisions node.
+    # Install ordering: setup-distrobox → install-mise-tools (node) → install-npm-globals.
+    npm_globals:
+      - "@anthropic-ai/claude-code"
+
+    # Curl-based installers run inside the container. Each entry is run once
+    # (re-runs when the list changes — assumed idempotent / self-upgrading).
+    curl_installers:
+      # Google's Android CLI agent tool — official installer, auto-latest.
+      - name: android-cli
+        url: https://dl.google.com/android/cli/latest/linux_x86_64/install.sh
+
 
 # Shared across distros. Applied on host for arch, inside distrobox for bazzite.
 mise:

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Installs npm global packages inside the arch-dev distrobox.
+# Runs after install-mise-tools so node is on PATH.
+# Same hash-of-package-list semantics as the other run_onchange_ scripts:
+# editing the npm_globals list in packages.yaml triggers a re-run.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+CONTAINER="{{ .bazzite.distrobox.name }}"
+
+if ! command -v distrobox >/dev/null 2>&1; then
+    echo "⚠ distrobox not found — skipping npm globals"
+    exit 0
+fi
+
+if ! distrobox list | awk '{print $3}' | grep -qx "$CONTAINER"; then
+    echo "⚠ distrobox '$CONTAINER' not found — run setup-distrobox first"
+    exit 0
+fi
+
+NPM_GLOBALS=(
+{{- range .bazzite.distrobox.npm_globals }}
+    {{ . | quote }}
+{{- end }}
+)
+
+if [ "${#NPM_GLOBALS[@]}" -eq 0 ]; then
+    exit 0
+fi
+
+# mise activates node lazily; `mise exec` guarantees npm is on PATH regardless
+# of how the container shell is configured.
+echo "→ [$CONTAINER] installing ${#NPM_GLOBALS[@]} npm global package(s)"
+distrobox enter "$CONTAINER" -- \
+    mise exec -- npm install -g "${NPM_GLOBALS[@]}"
+
+{{ end -}}
+
+# Hash of package list — changing the list re-triggers this script:
+# {{ .bazzite.distrobox.npm_globals | toJson | sha256sum }}

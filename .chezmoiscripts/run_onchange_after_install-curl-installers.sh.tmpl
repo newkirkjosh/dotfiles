@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Runs curl-piped installer scripts inside the arch-dev distrobox.
+# Use sparingly — prefer pacman/AUR/npm_globals when an upstream package exists.
+# Re-runs when curl_installers in packages.yaml changes; installers are
+# expected to be idempotent and to handle their own upgrade path.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+CONTAINER="{{ .bazzite.distrobox.name }}"
+
+if ! command -v distrobox >/dev/null 2>&1; then
+    echo "⚠ distrobox not found — skipping curl installers"
+    exit 0
+fi
+
+if ! distrobox list | awk '{print $3}' | grep -qx "$CONTAINER"; then
+    echo "⚠ distrobox '$CONTAINER' not found — run setup-distrobox first"
+    exit 0
+fi
+
+{{ range .bazzite.distrobox.curl_installers }}
+echo "→ [$CONTAINER] running installer: {{ .name }} ({{ .url }})"
+distrobox enter "$CONTAINER" -- bash -c 'curl -fsSL {{ .url | quote }} | bash'
+{{ end }}
+
+{{ end -}}
+
+# Hash of installer list — changing it re-triggers this script:
+# {{ .bazzite.distrobox.curl_installers | toJson | sha256sum }}
