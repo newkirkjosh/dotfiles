@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Enables the Spotify singleton cleanup service so stale lock files are
+# removed at each graphical login, preventing silent launch failures after crashes.
+
+set -euo pipefail
+
+systemctl --user enable spotify-singleton-cleanup.service
+echo "→ enabled spotify-singleton-cleanup.service"

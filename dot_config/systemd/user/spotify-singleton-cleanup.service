@@ -1,0 +1,10 @@
+[Unit]
+Description=Remove stale Spotify singleton lock files
+Before=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/rm -f %h/.var/app/com.spotify.Client/cache/spotify/SingletonLock %h/.var/app/com.spotify.Client/cache/spotify/SingletonSocket %h/.var/app/com.spotify.Client/cache/spotify/SingletonCookie
+
+[Install]
+WantedBy=graphical-session.target
