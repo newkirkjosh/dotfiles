@@ -1,10 +1,15 @@
-# Declarative package lists, consumed by scripts in .chezmoiscripts/.
-# Each script is guarded by .chezmoi.osRelease.id so only the relevant
-# section installs on a given host.
+# Bazzite host package lists, consumed by scripts in .chezmoiscripts/.
+# Chezmoi merges all .yaml files in .chezmoidata/ — keys are top-level,
+# so scripts reference these as .bazzite.flatpak, .bazzite.brew, etc.
 #
-# Layout:
-#   bazzite:  rpm-ostree + flatpak + brew + ujust + distrobox
-#   mise:     language runtimes, installed inside arch-dev distrobox
+# Install hierarchy (prefer top of list):
+#   distrobox  — all dev tools, CLIs, language runtimes, dev GUIs
+#   brew       — host-side CLIs chezmoi / non-dev workflows need
+#   flatpak    — host GUI apps that aren't dev tools
+#   rpm_ostree — kernel-adjacent / native-messaging only (costs a reboot)
+#   ujust      — Bazzite curated post-install one-liners
+#
+# To add a package: pick the right layer below, run `chezmoi apply`.
 
 bazzite:
   # rpm-ostree layered packages — system-level, persisted across rebases.
@@ -33,8 +38,16 @@ bazzite:
     - net.davidotek.pupgui2                  # ProtonUp-Qt (Proton-GE manager)
     - io.github.benjamimgois.goverlay        # MangoHud GUI
     - com.usebottles.bottles                 # modern wine wrapper
-    # Peripherals
-    - org.freedesktop.Piper                  # G502X — talks to host ratbagd
+    # Peripherals — note: Piper is device-gated below (device_packages)
+
+  # Device-conditional Flatpak packages — installed only when matching USB hardware
+  # is detected. usb_ids format: "VVVV:PPPP" (vendor:product, lowercase hex, as shown by lsusb).
+  device_packages:
+    - flatpak_id: org.freedesktop.Piper
+      description: "Logitech mouse configuration (G502X)"
+      usb_ids:
+        - "046d:c094"   # G502X wired
+        - "046d:c539"   # G502X PLUS wireless USB receiver
 
   # Host brew = minimal. Only what the host shell / chezmoi needs.
   # All dev CLI tooling lives inside the distrobox.
@@ -121,11 +134,3 @@ bazzite:
       # Google's Android CLI agent tool — official installer, auto-latest.
       - name: android-cli
         url: https://dl.google.com/android/cli/latest/linux_x86_64/install.sh
-
-
-# Shared across distros. Applied on host for arch, inside distrobox for bazzite.
-mise:
-  - java@21           # KMP / Android / general JVM
-  - node@lts          # frontend + Claude Code tooling
-  - go@latest
-  - python@3.13

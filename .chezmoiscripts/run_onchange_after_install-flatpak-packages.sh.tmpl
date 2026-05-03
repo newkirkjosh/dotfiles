@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Installs Flatpak apps from .chezmoidata/packages.yaml (bazzite.flatpak).
-# Reruns when this script or packages.yaml changes.
+# Installs Flatpak apps from .chezmoidata/bazzite.yaml (.bazzite.flatpak and
+# .bazzite.device_packages). Reruns when this script or bazzite.yaml changes.
 #
 # --user scope keeps Flatpaks out of the system image so they survive rebases.
+# device_packages entries are only installed when matching USB hardware is found.
 
 set -euo pipefail
 
@@ -21,5 +22,25 @@ PACKAGES=(
 
 echo "→ Installing ${#PACKAGES[@]} Flatpak apps (user scope)"
 flatpak install --user --assumeyes --noninteractive flathub "${PACKAGES[@]}"
+
+# Device-conditional packages — only install when matching USB hardware is present.
+if ! command -v lsusb >/dev/null 2>&1; then
+    echo "⚠ lsusb not found — skipping device-conditional packages"
+else
+    USB_DEVICES=$(lsusb)
+{{ range .bazzite.device_packages }}
+    MATCHED=0
+    FLATPAK_ID={{ .flatpak_id | quote }}
+{{- range .usb_ids }}
+    if echo "$USB_DEVICES" | grep -qi {{ . | quote }}; then MATCHED=1; fi
+{{- end }}
+    if [ "$MATCHED" -eq 1 ]; then
+        echo "→ Installing $FLATPAK_ID (hardware matched)"
+        flatpak install --user --assumeyes --noninteractive flathub "$FLATPAK_ID"
+    else
+        echo "⊘ skipping $FLATPAK_ID (hardware not detected)"
+    fi
+{{ end -}}
+fi
 
 {{ end -}}

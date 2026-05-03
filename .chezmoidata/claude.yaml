@@ -1,0 +1,38 @@
+---
+# Claude Code settings, consumed by run_onchange_after_update-claude-settings.sh.tmpl.
+# Keys under `settings` are merged into ~/.claude/settings.json (our keys win).
+# Keys under `marketplace` are merged in alongside settings.
+
+marketplace:
+  extraKnownMarketplaces:
+    fx-cc:
+      source:
+        source: github
+        repo: fx/cc
+
+settings:
+  env:
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+  skipDangerousModePermissionPrompt: true
+  teammateMode: tmux
+  agentPushNotifEnabled: true
+  statusLine:
+    type: command
+    # commandPath is relative to $HOME; the script expands it to an absolute path.
+    commandPath: .claude/statusline-command.sh
+  enabledPlugins:
+    superpowers@claude-plugins-official: true
+    code-review@claude-plugins-official: true
+    claude-md-management@claude-plugins-official: true
+    swift-lsp@claude-plugins-official: true
+    skill-creator@claude-plugins-official: true
+    frontend-design@claude-plugins-official: true
+    typescript-lsp@claude-plugins-official: true
+    code-simplifier@claude-plugins-official: true
+    pr-review-toolkit@claude-plugins-official: true
+    supabase@claude-plugins-official: true
+    firebase@claude-plugins-official: true
+    context7@claude-plugins-official: true
+    gopls-lsp@claude-plugins-official: true
+    posthog@claude-plugins-official: true
+    figma@claude-plugins-official: true

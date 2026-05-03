@@ -1,0 +1,15 @@
+# mise language runtime list, consumed by run_onchange_after_install-mise-tools.sh.tmpl.
+# Chezmoi merges all .yaml files in .chezmoidata/ — scripts reference this as .mise.
+#
+# On Bazzite: runtimes are installed inside the arch-dev distrobox.
+# On Arch host: runtimes are installed directly on the host.
+#
+# To add a runtime: append an entry in `tool@version` format, run `chezmoi apply`.
+# Version specifiers: @latest, @lts, @21, @3.13, etc.
+
+# Shared across distros. Applied on host for arch, inside distrobox for bazzite.
+mise:
+  - java@21           # KMP / Android / general JVM
+  - node@lts          # frontend + Claude Code tooling
+  - go@latest
+  - python@3.13

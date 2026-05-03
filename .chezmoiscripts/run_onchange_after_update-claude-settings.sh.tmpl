@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Merges managed Claude Code settings into ~/.claude/settings.json.
+# Reruns when this script or claude.yaml changes.
+
+set -euo pipefail
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "⚠ jq not found — skipping Claude settings update"
+    exit 0
+fi
+
+SETTINGS_FILE="$HOME/.claude/settings.json"
+mkdir -p "$HOME/.claude"
+
+if [ -f "$SETTINGS_FILE" ]; then
+    existing=$(cat "$SETTINGS_FILE")
+else
+    existing='{}'
+fi
+
+# Build the managed settings block from chezmoidata.
+# statusLine.command is constructed here so $HOME is evaluated at apply-time,
+# not hard-coded into the source file.
+required_settings='{{ .claude.settings | toJson }}'
+marketplace_config='{{ .claude.marketplace | toJson }}'
+
+# Extract commandPath and rebuild statusLine with an absolute command string.
+command_path=$(echo "$required_settings" | jq -r '.statusLine.commandPath')
+status_line_json=$(jq -n \
+    --arg type "command" \
+    --arg cmd "bash $HOME/$command_path" \
+    '{"type": $type, "command": $cmd}')
+
+# Strip the placeholder commandPath and inject the resolved statusLine.
+required_settings=$(echo "$required_settings" | jq \
+    --argjson sl "$status_line_json" \
+    'del(.statusLine.commandPath) | .statusLine = $sl')
+
+# Merge: existing keys are preserved; our managed keys win on conflict.
+result=$(echo "$existing" | jq \
+    --argjson required "$required_settings" \
+    --argjson marketplace "$marketplace_config" \
+    '. * $required * $marketplace')
+
+echo "$result" > "$SETTINGS_FILE"
+echo "✓ Updated $SETTINGS_FILE"
