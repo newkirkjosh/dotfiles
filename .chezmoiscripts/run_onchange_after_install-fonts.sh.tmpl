@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Downloads Nerd Font families from GitHub releases and installs to ~/.local/share/fonts/.
+# Reruns when font families or version in bazzite.yaml changes.
+
+set -euo pipefail
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+
+FONT_DIR="$HOME/.local/share/fonts"
+VERSION="{{ .bazzite.nerd_fonts.version }}"
+BASE_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v${VERSION}"
+
+if ! command -v unzip >/dev/null 2>&1; then
+    echo "⚠ unzip not found — skipping font install"
+    exit 0
+fi
+
+mkdir -p "$FONT_DIR"
+
+{{ range .bazzite.nerd_fonts.families -}}
+FAMILY="{{ . }}"
+echo "→ Installing Nerd Font: $FAMILY v${VERSION}"
+TMP_ZIP=$(mktemp --suffix=".zip")
+TMP_DIR=$(mktemp -d)
+curl -fsSL "${BASE_URL}/${FAMILY}.zip" -o "$TMP_ZIP"
+unzip -oq "$TMP_ZIP" -d "$TMP_DIR"
+mkdir -p "$FONT_DIR/$FAMILY"
+find "$TMP_DIR" \( -name "*.ttf" -o -name "*.otf" \) ! -name "*Windows*" \
+    -exec mv {} "$FONT_DIR/$FAMILY/" \;
+rm -rf "$TMP_ZIP" "$TMP_DIR"
+echo "  ✓ $FAMILY"
+{{ end -}}
+
+echo "→ Rebuilding font cache"
+fc-cache -fv "$FONT_DIR" >/dev/null && echo "  ✓ font cache updated"
+
+{{ end -}}

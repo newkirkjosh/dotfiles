@@ -57,6 +57,13 @@ bazzite:
     - gh                      # GitHub CLI — host-side; arch-dev has its own copy via pacman
     - git-delta               # chezmoi pager + git diff renderer on the host
 
+  # Nerd Fonts — installed to ~/.local/share/fonts/ on the host for Konsole and other GUI apps.
+  # run_onchange_after_install-fonts.sh.tmpl handles download + fc-cache.
+  nerd_fonts:
+    version: "3.3.0"
+    families:
+      - JetBrainsMono
+
   # Bazzite ujust one-liners — curated post-install helpers.
   # Safer than rpm-ostree layering; explore more with `ujust --list`.
   ujust:

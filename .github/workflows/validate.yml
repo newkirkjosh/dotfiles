@@ -32,14 +32,18 @@ jobs:
         # The repo's .chezmoi.toml.tmpl uses promptStringOnce; supply dummy
         # answers so init does not block. --source points chezmoi at the
         # checked-out repo so we don't clone over the network.
+        #
+        # NOTE: --promptString keys are the *prompt text* (3rd arg of
+        # promptStringOnce in .chezmoi.toml.tmpl), not the data key. If those
+        # prompt strings change, update them here to match.
         env:
           CHEZMOI_SOURCE: ${{ github.workspace }}
         run: |
           chezmoi init \
             --source="$CHEZMOI_SOURCE" \
-            --promptString "name=Test User" \
-            --promptString "email=test@example.com" \
-            --promptString "signingkey=" \
+            --promptString "Full name (for git)=Test User" \
+            --promptString "Email (for git)=test@example.com" \
+            --promptString "SSH public key for commit signing (leave blank to skip)=" \
             --no-tty
 
       - name: Run validation
