@@ -18,8 +18,7 @@ claude:
     teammateMode: tmux
     agentPushNotifEnabled: true
     # Suppress `Co-Authored-By: Claude` trailer in commits and the
-    # `🤖 Generated with Claude Code` footer in PR bodies. Empty strings hide both.
-    # Supersedes the deprecated `includeCoAuthoredBy` boolean.
+    # `🤖 Generated with Claude Code` footer in PR bodies.
     attribution:
       commit: ""
       pr: ""
