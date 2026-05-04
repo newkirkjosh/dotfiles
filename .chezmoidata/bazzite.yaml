@@ -111,6 +111,7 @@ bazzite:
       - openssh                 # ssh-keygen / ssh-add inside the container
       - git-delta               # better diffs for git + chezmoi pager
       - lazygit                 # git TUI
+      - worktrunk               # git worktree CLI for parallel AI agent workflows (binary: `wt`)
       - btop                    # modern process / resource viewer
 
       # Optional container workflows inside the dev env
