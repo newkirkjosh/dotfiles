@@ -67,7 +67,7 @@ else
         rel="${f#"$REPO_DIR"/}"
         case "$YAML_PARSER" in
             yq)
-                if yq eval '.' "$f" >/dev/null 2>&1; then
+                if yq '.' "$f" >/dev/null 2>&1; then
                     success "yaml ok: $rel"
                 else
                     record_fail "yaml parse failed: $rel"

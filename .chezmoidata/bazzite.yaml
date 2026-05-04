@@ -85,6 +85,7 @@ bazzite:
       - tmux
 
       # CLI tooling
+      - chezmoi                 # dotfiles management — needed to run test/validate.sh from inside the container
       - neovim
       - ripgrep
       - fd
