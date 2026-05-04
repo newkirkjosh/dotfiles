@@ -85,8 +85,7 @@ Managed settings live in `.chezmoidata/claude.yaml` under two keys:
 
 ## Commits
 
-- Sign commits via 1Password's SSH agent. From the arch-dev distrobox use `git -c gpg.ssh.program=/run/host/usr/lib/opt/1Password/op-ssh-sign commit ...` (the gitconfig conditional handles host-side automatically).
-- Never add `Co-Authored-By: Claude` or any `🤖 Generated with Claude Code` trailer/footer to commit messages or PR bodies. Authorship is the user's; attribution stays out of git history.
+Sign commits via 1Password's SSH agent. From the arch-dev distrobox use `git -c gpg.ssh.program=/run/host/usr/lib/opt/1Password/op-ssh-sign commit ...` (the gitconfig conditional handles host-side automatically). The `includeCoAuthoredBy: false` setting in `.chezmoidata/claude.yaml` suppresses Claude co-author trailers — no per-commit handling needed.
 
 ## Bazzite quirks worth remembering
 

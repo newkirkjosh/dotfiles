@@ -17,6 +17,9 @@ claude:
     skipDangerousModePermissionPrompt: true
     teammateMode: tmux
     agentPushNotifEnabled: true
+    # Suppress `Co-Authored-By: Claude` and `🤖 Generated with Claude Code` trailers/footers
+    # in commits and PR bodies created by Claude Code.
+    includeCoAuthoredBy: false
     statusLine:
       type: command
       # commandPath is relative to $HOME; the script expands it to an absolute path.
