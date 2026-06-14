@@ -10,6 +10,6 @@
 # Shared across distros. Applied on host for arch, inside distrobox for bazzite.
 mise:
   - java@21           # KMP / Android / general JVM
-  - node@lts          # frontend + Claude Code tooling
+  - node@lts          # frontend tooling
   - go@latest
   - python@3.13

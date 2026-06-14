@@ -134,8 +134,7 @@ bazzite:
 
     # npm globals installed inside the container after mise provisions node.
     # Install ordering: setup-distrobox → install-mise-tools (node) → install-npm-globals.
-    npm_globals:
-      - "@anthropic-ai/claude-code"
+    npm_globals: []
 
     # Curl-based installers run inside the container. Each entry is run once
     # (re-runs when the list changes — assumed idempotent / self-upgrading).
@@ -143,3 +142,8 @@ bazzite:
       # Google's Android CLI agent tool — official installer, auto-latest.
       - name: android-cli
         url: https://dl.google.com/android/cli/latest/linux_x86_64/install.sh
+      # Claude Code — official native installer. Self-contained binary at
+      # ~/.local/bin/claude (shared home, visible on host + distrobox);
+      # auto-updates in the background. Replaces the old npm global.
+      - name: claude-code
+        url: https://claude.ai/install.sh
