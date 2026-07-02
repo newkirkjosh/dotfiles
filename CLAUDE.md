@@ -81,7 +81,7 @@ Managed settings live in `.chezmoidata/claude.yaml` under two keys:
 
 ### Keep docs out of `$HOME`
 
-`CLAUDE.md`, `README.md`, `docs/`, `install.sh`, `.github/**`, and `test/**` are all chezmoi-ignored — they live in the repo but are never applied to `$HOME`.
+The root `CLAUDE.md`, `README.md`, `docs/`, `install.sh`, `.github/**`, and `test/**` are all chezmoi-ignored — they live in the repo but are never applied to `$HOME`. The ignore for the root doc is anchored (`/CLAUDE.md`) so it does **not** catch `dot_claude/CLAUDE.md`, which *is* applied to `~/.claude/CLAUDE.md` as the global Claude instructions.
 
 ## Commits
 

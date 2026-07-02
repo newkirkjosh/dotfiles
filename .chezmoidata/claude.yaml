@@ -4,17 +4,13 @@
 # Keys under `claude.marketplace` are merged in alongside settings.
 
 claude:
-  marketplace:
-    extraKnownMarketplaces:
-      fx-cc:
-        source:
-          source: github
-          repo: fx/cc
+  # No managed marketplaces. Local settings.json state carries any
+  # extraKnownMarketplaces (e.g. newkirkj-claude-plugins) machine-side.
+  marketplace: {}
 
   settings:
     env:
       CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
-    skipDangerousModePermissionPrompt: true
     teammateMode: tmux
     agentPushNotifEnabled: true
     # Suppress `Co-Authored-By: Claude` trailer in commits and the
@@ -22,6 +18,16 @@ claude:
     attribution:
       commit: ""
       pr: ""
+    # Refuse reads/edits of secret files regardless of permission mode.
+    permissions:
+      deny:
+        - "Read(~/.claude/.credentials.json)"
+        - "Edit(~/.claude/.credentials.json)"
+        - "Read(**/.credentials.json)"
+        - "Read(**/.env)"
+        - "Edit(**/.env)"
+        - "Read(**/.env.local)"
+        - "Edit(**/.env.local)"
     statusLine:
       type: command
       # commandPath is relative to $HOME; the script expands it to an absolute path.

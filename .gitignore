@@ -17,6 +17,10 @@ Thumbs.db
 secrets/
 .env
 .env.local
+.credentials.json
+# Never track machine-local Claude state (permission grants) or memory (PII)
+dot_claude/settings.local.json
+dot_claude/**/memory/
 
 # Logs
 *.log

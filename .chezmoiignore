@@ -1,6 +1,6 @@
 # Files in this repo that are NOT applied to the home directory.
 README.md
-CLAUDE.md
+/CLAUDE.md
 docs/**
 install.sh
 .github/**
