@@ -35,9 +35,9 @@
     format = ssh
 
 [gpg "ssh"]
-    # Bazzite (immutable): /usr/lib/opt/1Password/op-ssh-sign
+    # Bazzite (immutable): /usr/libexec/op-ssh-sign (1Password rpm; symlink to /usr/share/1password/op-ssh-sign)
     # Arch (pacman):       /opt/1Password/op-ssh-sign
-    program = "{{ if eq .chezmoi.osRelease.id "bazzite" }}/usr/lib/opt/1Password/op-ssh-sign{{ else }}/opt/1Password/op-ssh-sign{{ end }}"
+    program = "{{ if eq .chezmoi.osRelease.id "bazzite" }}/usr/libexec/op-ssh-sign{{ else }}/opt/1Password/op-ssh-sign{{ end }}"
     allowedSignersFile = "~/.config/git/allowed_signers"
 
 [commit]
