@@ -79,4 +79,10 @@ if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
 
+# ─── Android SDK ─────────────────────────────────────────────────────
+if [[ -d "$HOME/Android/Sdk/platform-tools" ]]; then
+  export ANDROID_HOME="$HOME/Android/Sdk"
+  export PATH="$ANDROID_HOME/platform-tools:$PATH"
+fi
+
 export PATH="$HOME/.local/bin:$PATH"
