@@ -1,0 +1,7 @@
+[Unit]
+Description=Switch Konsole between Rosé Pine Moon (day) and Rosé Pine (night)
+Documentation=file:%h/.local/bin/konsole-theme-auto
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/konsole-theme-auto

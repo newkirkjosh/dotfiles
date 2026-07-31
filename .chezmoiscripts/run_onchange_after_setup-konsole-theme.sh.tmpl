@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Enables the Konsole day/night theme timer and applies the correct Rosé Pine
+# variant immediately, so a fresh apply doesn't leave the terminal on whatever
+# variant it happened to land on until the next 10-minute tick.
+#
+# Re-runs whenever the units or the switcher script change:
+# units hash: {{ include "dot_config/systemd/user/konsole-theme-auto.service" | sha256sum }}
+#             {{ include "dot_config/systemd/user/konsole-theme-auto.timer" | sha256sum }}
+# script hash: {{ include "dot_local/bin/executable_konsole-theme-auto" | sha256sum }}
+
+set -euo pipefail
+
+systemctl --user daemon-reload
+systemctl --user enable --now konsole-theme-auto.timer
+echo "→ enabled konsole-theme-auto.timer"
+
+"${HOME}/.local/bin/konsole-theme-auto"

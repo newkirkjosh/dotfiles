@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# Switch Konsole between Rosé Pine Moon (day) and Rosé Pine (night).
+#
+# Both variants are dark on purpose. Rosé Pine Dawn is the official light
+# variant, but its #faf4ed base is glaring against KDE's dark window chrome,
+# so the daytime slot uses Moon's softer #232136 instead — the shift is
+# backdrop-only, since Moon and main share the same accent colours.
+#
+# Decides from the sun's actual altitude rather than fixed clock hours —
+# in Colorado sunset swings from 16:38 to 20:31 across the year, so fixed
+# hours would be wrong by up to two hours at the solstices.
+#
+# Two things get updated:
+#   * konsolerc DefaultProfile — picked up by new windows and tabs
+#   * every live tab — via Konsole's OSC 50 escape (see konsoleprofile(1))
+#
+# Deliberately NOT done over D-Bus: Session.setProfile is gated behind
+# Konsole's EnableSecuritySensitiveDBusAPI, which also switches on runCommand
+# for anything that can reach the session bus. Writing the escape sequence to
+# each tab's pty achieves the same repaint with no such grant. Note the escape
+# route sets only the colour scheme and is not persisted — which is what we
+# want, since the profile on disk stays the source of truth.
+#
+#   konsole-theme-auto              # pick from the sun, apply
+#   konsole-theme-auto --status     # print what it would do, change nothing
+#   konsole-theme-auto day|night    # force a variant
+
+set -euo pipefail
+
+# Arvada, CO. Override per-machine with KONSOLE_THEME_LAT / _LON.
+LAT="${KONSOLE_THEME_LAT:-39.8028}"
+LON="${KONSOLE_THEME_LON:--105.0875}"
+
+# Colour schemes are vendored from upstream and keep upstream's filenames;
+# the profiles wrapping them are ours, hence the two sets of names.
+DAY_SCHEME="rose-pine-moon";  DAY_PROFILE="RosePineMoon"
+NIGHT_SCHEME="rose-pine";     NIGHT_PROFILE="RosePine"
+
+# Sun altitude in degrees for `now`, low-precision NOAA algorithm (±0.01°,
+# far tighter than the minute-scale resolution we need). Emits "day" when
+# the sun's centre is above -0.833° — the standard refraction-corrected
+# horizon, i.e. civil sunrise/sunset.
+sun_phase() {
+  awk -v now="$(date +%s)" -v lat="$LAT" -v lon="$LON" '
+  function fmod(x, m) { return x - m * int(x / m) + (x < 0 ? m : 0) }
+  function asin(x)    { return atan2(x, sqrt(1.0 - x * x)) }
+  BEGIN {
+    D2R = 3.14159265358979324 / 180.0
+    d   = (now / 86400.0) + 2440587.5 - 2451545.0   # days since J2000.0
+
+    g = fmod(357.529 + 0.98560028 * d, 360.0)       # mean anomaly
+    q = fmod(280.459 + 0.98564736 * d, 360.0)       # mean longitude
+    L = fmod(q + 1.915 * sin(g * D2R) + 0.020 * sin(2 * g * D2R), 360.0)
+    e = 23.439 - 0.00000036 * d                     # obliquity
+
+    ra  = atan2(cos(e * D2R) * sin(L * D2R), cos(L * D2R)) / D2R
+    dec = asin(sin(e * D2R) * sin(L * D2R)) / D2R
+
+    gmst = fmod(18.697374558 + 24.06570982441908 * d, 24.0)
+    lmst = fmod(gmst * 15.0 + lon, 360.0)
+    ha   = fmod(lmst - ra + 540.0, 360.0) - 180.0   # hour angle, [-180,180]
+
+    sinalt = sin(lat * D2R) * sin(dec * D2R) + cos(lat * D2R) * cos(dec * D2R) * cos(ha * D2R)
+    print (asin(sinalt) / D2R > -0.833) ? "day" : "night"
+  }'
+}
+
+# Controlling ttys of every Konsole tab/split, one per line. Each tab's shell
+# is a direct child of the konsole process.
+konsole_ptys() {
+  local kpid
+  for kpid in $(pgrep -x konsole 2>/dev/null || true); do
+    ps -e -o ppid=,tty= | awk -v k="$kpid" '$1 == k && $2 ~ /^pts\// { print $2 }'
+  done | sort -u
+}
+
+case "${1:-}" in
+  day|night) phase="$1" ;;
+  ""|--status) phase="$(sun_phase)" ;;
+  *) echo "usage: ${0##*/} [day|night|--status]" >&2; exit 64 ;;
+esac
+
+if [ "$phase" = day ]; then
+  scheme="$DAY_SCHEME"; profile="$DAY_PROFILE"
+else
+  scheme="$NIGHT_SCHEME"; profile="$NIGHT_PROFILE"
+fi
+
+if [ "${1:-}" = --status ]; then
+  echo "$phase -> $profile ($scheme)"
+  konsole_ptys | sed 's/^/  live tab: \/dev\//'
+  exit 0
+fi
+
+# New windows and tabs.
+kwriteconfig6 --file konsolerc --group "Desktop Entry" \
+  --key DefaultProfile "${profile}.profile"
+
+# Live tabs. A tab that has since closed is not an error worth failing on,
+# but anything else is worth knowing about, so only ENXIO/EIO are swallowed.
+applied=0
+while read -r pts; do
+  [ -n "$pts" ] || continue
+  if printf '\033]50;ColorScheme=%s\a' "$scheme" > "/dev/$pts" 2>/dev/null; then
+    applied=$((applied + 1))
+  fi
+done < <(konsole_ptys)
+
+echo "konsole theme: $phase -> $profile (${applied} live tab(s))"

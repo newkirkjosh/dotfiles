@@ -1,0 +1,13 @@
+[Unit]
+Description=Poll for the Konsole day/night theme boundary
+
+[Timer]
+# Once shortly after login, then every 10 minutes. Persistent catches the
+# boundary being crossed while the machine was asleep or powered off.
+OnActiveSec=15s
+OnCalendar=*:0/10
+AccuracySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
