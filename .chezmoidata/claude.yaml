@@ -43,19 +43,32 @@ claude:
           hooks:
             - type: command
               command: "~/.claude/hooks/block-dangerous-git.sh"
+    # `false` here is load-bearing: the merge script only ever adds keys
+    # (jq `. * $required`), so it can never delete a plugin entry. Removing a
+    # line leaves the machine-side `true` in settings.json untouched — the only
+    # way to durably disable a plugin is to assert `false`.
+    #
+    # Disabled 2026-08-22 after a usage audit (0 invocations in 152 startups):
+    #   posthog        — ~135 skill descriptions injected per prompt, no account
+    #   swift-lsp      — iOS targets can't be built on this Linux host
+    #   typescript-lsp — no TypeScript work on this machine
+    #   amd-skills     — never used
+    #   discord        — never used; its MCP server can't start (no `bun`)
     enabledPlugins:
       superpowers@claude-plugins-official: true
       code-review@claude-plugins-official: true
       claude-md-management@claude-plugins-official: true
-      swift-lsp@claude-plugins-official: true
+      swift-lsp@claude-plugins-official: false
       skill-creator@claude-plugins-official: true
       frontend-design@claude-plugins-official: true
-      typescript-lsp@claude-plugins-official: true
+      typescript-lsp@claude-plugins-official: false
       code-simplifier@claude-plugins-official: true
       pr-review-toolkit@claude-plugins-official: true
       supabase@claude-plugins-official: true
       firebase@claude-plugins-official: true
       context7@claude-plugins-official: true
       gopls-lsp@claude-plugins-official: true
-      posthog@claude-plugins-official: true
+      posthog@claude-plugins-official: false
       figma@claude-plugins-official: true
+      amd-skills@claude-plugins-official: false
+      discord@claude-plugins-official: false
