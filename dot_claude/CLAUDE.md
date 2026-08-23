@@ -7,7 +7,7 @@
 - Github-flavored markdown
 
 ## Memory
-Persistent notes live in `~/.claude/projects/-home-fuzzyfission/memory/`. Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
+Persistent notes live in `~/.claude/projects/-var-home-fuzzyfission/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
 
 ## Skill Invocation
 Always check for applicable skills before acting. Even a 1% chance a skill applies means invoke it. Announce which skill is being used before proceeding. Custom skills live in `~/.claude/skills/`.
@@ -39,7 +39,7 @@ Manual heavy mode on: "devil's advocate this", "challenge this", "stress test th
 
 Skip entirely for: obvious bug fixes, single-file edits with no architectural implications, explanations of existing code, tasks where user said "just do it".
 
-Light mode always uses the labeled **Devil's Advocate** block (Steel-man / Assumptions / Failure modes / Verdict). Max ~150 words. Verdict is `confirmed` or `revised` (lowercase) — never both. Always moves forward after the verdict. Heavy mode uses a three-value verdict (`Confirm` / `Revise` / `Reconsider`, capitalized) defined in the skill file — see `~/.claude/skills/shared/devils-advocate.md`.
+Light mode always uses the labeled **Devil's Advocate** block (Steel-man / Assumptions / Failure modes / Verdict). Max ~150 words. Verdict is `confirmed` or `revised` (lowercase) — never both. Always moves forward after the verdict. Heavy mode uses a three-value verdict (`Confirm` / `Revise` / `Reconsider`, capitalized) defined in the skill file — see the `newkirkj-dev:devils-advocate` skill.
 
 ## Pull Requests
 Before creating any PR, read the project's `CLAUDE.md` for label and project assignment conventions. Always apply at least one type label and all applicable layer labels. Always assign to the project defined in `CLAUDE.md`. Use `--label` and `--project` flags on `gh pr create`.
