@@ -12,7 +12,11 @@ C_CYAN=$'\e[38;5;117m'    # #7dcfff — model
 C_RESET=$'\e[0m'
 
 # Parse JSON in one Python pass.
-IFS=$'\t' read -r cwd used model five_hour < <(printf '%s' "$input" | python3 -c '
+# Use \x1f (unit separator) instead of \t: bash `read` treats an all-whitespace
+# IFS as "collapse runs and trim edges", which silently drops empty fields
+# (context_window/rate_limits are absent on first launch or right after
+# /clear) and shifts everything left — e.g. model ends up in used's slot.
+IFS=$'\x1f' read -r cwd used model five_hour < <(printf '%s' "$input" | python3 -c '
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -22,7 +26,9 @@ cwd       = (d.get("workspace") or {}).get("current_dir") or d.get("cwd") or ""
 used      = (d.get("context_window") or {}).get("used_percentage")
 model     = (d.get("model") or {}).get("display_name") or ""
 five_hour = ((d.get("rate_limits") or {}).get("five_hour") or {}).get("used_percentage")
-print(f"{cwd}\t{''.join(str(used) if used is not None else '')}\t{model}\t{''.join(str(five_hour) if five_hour is not None else '')}")
+u = str(used) if used is not None else ""
+f = str(five_hour) if five_hour is not None else ""
+print("\x1f".join([cwd, u, model, f]))
 ')
 
 # Directory — truncate to 3 components, matching starship truncation_length=3
