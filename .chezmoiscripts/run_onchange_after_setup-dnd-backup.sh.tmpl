@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Enables the daily D&D vault backup timer. The backup itself fails loudly
+# (systemctl --user --failed) until the "gdrive" rclone remote is configured.
+#
+# Re-runs whenever the units or the backup script change:
+# units hash: {{ include "dot_config/systemd/user/dnd-backup.service" | sha256sum }}
+#             {{ include "dot_config/systemd/user/dnd-backup.timer" | sha256sum }}
+# script hash: {{ include "dot_local/bin/executable_dnd-backup" | sha256sum }}
+
+set -euo pipefail
+
+systemctl --user daemon-reload
+systemctl --user enable --now dnd-backup.timer
+echo "→ enabled dnd-backup.timer"

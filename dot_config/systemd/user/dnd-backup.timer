@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily backup of the D&D vault to Google Drive
+
+[Timer]
+# Daily, spread over an hour. Persistent runs a missed backup at the next
+# login when the machine was off at the scheduled time.
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

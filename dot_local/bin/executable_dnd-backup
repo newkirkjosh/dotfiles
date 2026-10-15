@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# One-way backup of the D&D vault (~/Documents/dnd) to Google Drive.
+#
+# The vault is deliberately not a git repo (players' backstories and paid
+# module text never go on GitHub), so this is its only off-machine copy.
+#
+#   <remote>/current            mirror of the vault as of the last run
+#   <remote>/changed/YYYY-MM-DD files that run overwrote or deleted
+#
+# so a bad edit or a deleted note is recoverable for RETENTION days, not just
+# until the next sync. Run by dnd-backup.timer; run it by hand any time.
+#
+# One-time setup: `rclone config` → new remote named "gdrive", type "drive",
+# scope 3 (drive.file: rclone sees only the files it created).
+
+set -euo pipefail
+
+SRC="${HOME}/Documents/dnd"
+REMOTE="${DND_BACKUP_REMOTE:-gdrive:Backups/dnd}"
+RETENTION="${DND_BACKUP_RETENTION:-90d}"
+
+if ! command -v rclone >/dev/null 2>&1; then
+    echo "dnd-backup: rclone not installed (brew install rclone)" >&2
+    exit 1
+fi
+
+if ! rclone listremotes | grep -qx "${REMOTE%%:*}:"; then
+    echo "dnd-backup: rclone remote '${REMOTE%%:*}' not configured — run: rclone config" >&2
+    exit 1
+fi
+
+[ -d "$SRC" ] || { echo "dnd-backup: $SRC missing" >&2; exit 1; }
+
+rclone sync "$SRC" "$REMOTE/current" \
+    --backup-dir "$REMOTE/changed/$(date +%F)" \
+    --fast-list --stats-one-line --stats 0 -v
+
+rclone delete "$REMOTE/changed" --min-age "$RETENTION" --rmdirs 2>/dev/null || true
+
+echo "dnd-backup: synced $SRC → $REMOTE/current"
