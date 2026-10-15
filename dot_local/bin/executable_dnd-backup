@@ -15,6 +15,9 @@
 
 set -euo pipefail
 
+# systemd user services start with a minimal PATH that lacks Homebrew.
+export PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
+
 SRC="${HOME}/Documents/dnd"
 REMOTE="${DND_BACKUP_REMOTE:-gdrive:Backups/dnd}"
 RETENTION="${DND_BACKUP_RETENTION:-90d}"

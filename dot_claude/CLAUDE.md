@@ -43,6 +43,7 @@ Before creating any PR, read the project's `CLAUDE.md` for label and project ass
 - Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`.
 - Prefer user-level systemd units (`systemctl --user`) over system services.
 - Android emulator: run with `-gpu host`. The software renderers (swiftshader, `-gpu guest`) segfault here.
+- GUI apps launched for checks never go on the real desktop (it may be in use, e.g. gaming). Run them inside `arch-dev` on a virtual display: `Xvfb :99 -screen 0 1440x900x24 &`, then `DISPLAY=:99 WAYLAND_DISPLAY= <app>`; drive with `DISPLAY=:99 xdotool`, screenshot with `DISPLAY=:99 import -window root shot.png`. Android emulators run with `-no-window`.
 - Browsers are Flatpaks and can't read hidden dirs like `~/.claude`; copy files to `~/Downloads` before opening them.
 
 ## Safety Posture

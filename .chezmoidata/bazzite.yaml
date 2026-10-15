@@ -122,6 +122,12 @@ bazzite:
       # Peripherals accessible from inside the container
       - headsetcontrol          # G533 battery/sidetone CLI (USB HID passes through)
 
+      # Headless GUI testing: apps launched for checks run on a virtual display (Xvfb :99),
+      # never on the real desktop, so they don't take focus.
+      - xorg-server-xvfb
+      - xdotool
+      - imagemagick
+
     aur:
       # yay itself is provided by the yay-bin bootstrap in setup-distrobox.sh.
       # Listing it here too causes a yay vs yay-bin conflict.
