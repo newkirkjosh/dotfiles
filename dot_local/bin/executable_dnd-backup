@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# One-way backup of the D&D vault (~/Documents/dnd) to Google Drive.
+# One-way backup of the D&D vault (~/Documents/dnd) to Google Drive, into the
+# backup folder Joshua created in Drive.
 #
 # The vault is deliberately not a git repo (players' backstories and paid
 # module text never go on GitHub), so this is its only off-machine copy.
@@ -11,7 +12,10 @@
 # until the next sync. Run by dnd-backup.timer; run it by hand any time.
 #
 # One-time setup: `rclone config` → new remote named "gdrive", type "drive",
-# scope 3 (drive.file: rclone sees only the files it created).
+# scope 3 (drive.file: rclone sees only the files it created, plus anything
+# under its root folder). Then point the remote at the backup folder, keeping
+# the folder ID out of this public repo:
+#   rclone config update gdrive root_folder_id <folder-id>
 
 set -euo pipefail
 
@@ -19,7 +23,9 @@ set -euo pipefail
 export PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
 
 SRC="${HOME}/Documents/dnd"
-REMOTE="${DND_BACKUP_REMOTE:-gdrive:Backups/dnd}"
+# An override must end in ":" or "/" (paths below are appended directly).
+REMOTE="${DND_BACKUP_REMOTE:-gdrive:}"
+REMOTE_NAME="${REMOTE%%[:,]*}"
 RETENTION="${DND_BACKUP_RETENTION:-90d}"
 
 if ! command -v rclone >/dev/null 2>&1; then
@@ -27,17 +33,17 @@ if ! command -v rclone >/dev/null 2>&1; then
     exit 1
 fi
 
-if ! rclone listremotes | grep -qx "${REMOTE%%:*}:"; then
-    echo "dnd-backup: rclone remote '${REMOTE%%:*}' not configured — run: rclone config" >&2
+if ! rclone listremotes | grep -qx "${REMOTE_NAME}:"; then
+    echo "dnd-backup: rclone remote '${REMOTE_NAME}' not configured — run: rclone config" >&2
     exit 1
 fi
 
 [ -d "$SRC" ] || { echo "dnd-backup: $SRC missing" >&2; exit 1; }
 
-rclone sync "$SRC" "$REMOTE/current" \
-    --backup-dir "$REMOTE/changed/$(date +%F)" \
+rclone sync "$SRC" "${REMOTE}current" \
+    --backup-dir "${REMOTE}changed/$(date +%F)" \
     --fast-list --stats-one-line --stats 0 -v
 
-rclone delete "$REMOTE/changed" --min-age "$RETENTION" --rmdirs 2>/dev/null || true
+rclone delete "${REMOTE}changed" --min-age "$RETENTION" --rmdirs 2>/dev/null || true
 
-echo "dnd-backup: synced $SRC → $REMOTE/current"
+echo "dnd-backup: synced $SRC → ${REMOTE}current"
