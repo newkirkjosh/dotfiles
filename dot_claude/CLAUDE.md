@@ -10,7 +10,7 @@
 Persistent notes live in `~/.claude/projects/-var-home-fuzzyfission/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
 
 ## Skill Invocation
-Always check for applicable skills before acting. Even a 1% chance a skill applies means invoke it. Announce which skill is being used before proceeding. Custom skills live in `~/.claude/skills/`.
+Always check for applicable skills before acting. Even a 1% chance a skill applies means invoke it. Announce which skill is being used before proceeding. Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`.
 
 ## Tool Preferences
 Prefer dedicated tools over Bash equivalents:
