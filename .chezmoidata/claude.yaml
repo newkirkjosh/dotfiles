@@ -4,8 +4,8 @@
 # Keys under `claude.marketplace` are merged in alongside settings.
 
 claude:
-  # No managed marketplaces. Local settings.json state carries any
-  # extraKnownMarketplaces (e.g. newkirkj-claude-plugins) machine-side.
+  # No managed marketplaces. Personal skills come from newkirkjosh/skills,
+  # symlinked by run_onchange_after_install-skills.sh.tmpl.
   marketplace: {}
 
   settings:

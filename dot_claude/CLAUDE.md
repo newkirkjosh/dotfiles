@@ -21,17 +21,6 @@ Prefer dedicated tools over Bash equivalents:
 - Write files: Write (not echo/heredoc)
 Reserve Bash for operations that have no dedicated tool equivalent.
 
-## Agent Team Triggers
-Claude decides team composition based on task assessment. No manual invocation needed.
-
-**Single agent (default):** bug fix in one file, single Composable or Go handler, questions about existing code.
-
-**Two-agent team:** any new feature modifying more than 2 files (Architect scopes + Implementer builds), code review request (Reviewer analyzes + main agent synthesizes), refactor (Analyzer identifies boundaries + main agent executes), TDD cycle (Spec agent writes failing test + Impl agent makes it pass; main agent handles refactor after green). Evaluation phase (Evaluator derives sprint contract + writes/runs tests against it; always a separate agent from the Implementer).
-
-**Three-agent team:** KMP feature spanning shared module + Android + Go backend (one agent per layer), architecture decisions (three perspectives: simplicity / scalability / maintainability, synthesized by main agent), complex PR review (use pr-review-toolkit agents).
-
-Hard rules: agents receive read-only context snapshots; main agent always synthesizes and presents results; "more than 2 files modified" means files written or edited, not files read for context. Evaluator agent never shares context with the Implementer — context isolation is what makes evaluation meaningful. An evaluator that saw the implementation will rationalize its gaps rather than find them.
-
 ## Devil's Advocate
 Auto-trigger light mode before finalizing any recommendation involving: architectural decisions, irreversible changes, significant investment (user-stated or estimated >1 day — err toward triggering when unknown), go/no-go calls, or unverified assumptions.
 
@@ -39,10 +28,22 @@ Manual heavy mode on: "devil's advocate this", "challenge this", "stress test th
 
 Skip entirely for: obvious bug fixes, single-file edits with no architectural implications, explanations of existing code, tasks where user said "just do it".
 
-Light mode always uses the labeled **Devil's Advocate** block (Steel-man / Assumptions / Failure modes / Verdict). Max ~150 words. Verdict is `confirmed` or `revised` (lowercase) — never both. Always moves forward after the verdict. Heavy mode uses a three-value verdict (`Confirm` / `Revise` / `Reconsider`, capitalized) defined in the skill file — see the `newkirkj-dev:devils-advocate` skill.
+Light mode always uses the labeled **Devil's Advocate** block (Steel-man / Assumptions / Failure modes / Verdict). Max ~150 words. Verdict is `confirmed` or `revised` (lowercase) — never both. Always moves forward after the verdict. Heavy mode uses a three-value verdict (`Confirm` / `Revise` / `Reconsider`, capitalized) defined in the skill file — see the `devils-advocate` skill.
 
 ## Pull Requests
 Before creating any PR, read the project's `CLAUDE.md` for label and project assignment conventions. Always apply at least one type label and all applicable layer labels. Always assign to the project defined in `CLAUDE.md`. Use `--label` and `--project` flags on `gh pr create`.
+
+## Repo Conventions
+- `CLAUDE.md` contains only `@AGENTS.md`. All real instructions go in `AGENTS.md`.
+- Scoped rules go in `.claude/rules/`, not nested `AGENTS.md` files.
+- Don't propose new git repos or changes to a project's version control setup unless asked.
+
+## Environment
+- Host is Bazzite (immutable Fedora Atomic). Build GUI/desktop apps inside the `arch-dev` distrobox, not on the host.
+- Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`.
+- Prefer user-level systemd units (`systemctl --user`) over system services.
+- Android emulator: run with `-gpu host`. The software renderers (swiftshader, `-gpu guest`) segfault here.
+- Browsers are Flatpaks and can't read hidden dirs like `~/.claude`; copy files to `~/Downloads` before opening them.
 
 ## Safety Posture
 Confirm before: destructive operations (delete, force-push, drop table), hard-to-reverse operations (amend published commits, remove packages), actions visible to others (push, PR creation, messages). When in doubt, ask.

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Clones the personal skills catalog (newkirkjosh/skills) and symlinks every
+# skill into ~/.claude/skills via the catalog's own scripts/install.sh.
+# Links point into the checkout, so later skill edits need no re-run; re-run
+# install.sh by hand after adding, renaming or deleting a skill.
+
+set -euo pipefail
+
+REPO="newkirkjosh/skills"
+DEST="{{ .chezmoi.homeDir }}/Developer/skills"
+
+if [ ! -d "$DEST/.git" ]; then
+    mkdir -p "$(dirname "$DEST")"
+    if ! git clone "git@github.com:$REPO.git" "$DEST" 2>/dev/null; then
+        if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+            gh repo clone "$REPO" "$DEST"
+        else
+            echo "⚠ could not clone $REPO (no SSH key or gh auth) — skipping skills"
+            exit 0
+        fi
+    fi
+fi
+
+"$DEST/scripts/install.sh"
