@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Global git hook dispatcher: core.hooksPath points at this directory and
+# every hook name is a symlink to this file. In a repo with
+# `git config privacy.public true` it runs check-private before a commit,
+# then hands off to the repo's own .git/hooks/<name>, which core.hooksPath
+# would otherwise silently skip. A repo that sets its own core.hooksPath
+# (husky, lefthook) bypasses this directory entirely.
+set -euo pipefail
+
+hook="$(basename "$0")"
+dir="$(dirname "$(readlink -f "$0")")"
+
+if [ "$(git config --bool privacy.public 2>/dev/null || true)" = true ]; then
+  case "$hook" in
+    pre-commit) "$dir/check-private" --staged ;;
+    commit-msg) "$dir/check-private" --msg "$1" ;;
+  esac
+fi
+
+# Hooks such as reference-transaction also fire during `git init` and
+# `git clone`, before the repository resolves; never fail those.
+common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || exit 0
+repo_hook="$common/hooks/$hook"
+if [ -x "$repo_hook" ]; then
+  exec "$repo_hook" "$@"
+fi

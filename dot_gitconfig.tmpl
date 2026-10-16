@@ -19,6 +19,8 @@
 [core]
     autocrlf = input
     editor = nvim
+    # Global hooks: private-term check for public repos, then the repo's own hooks.
+    hooksPath = ~/.config/git/hooks
 
 [color]
     ui = auto

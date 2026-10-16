@@ -38,6 +38,12 @@ Before creating any PR, read the project's `CLAUDE.md` for label and project ass
 - Scoped rules go in `.claude/rules/`, not nested `AGENTS.md` files.
 - Don't propose new git repos or changes to a project's version control setup unless asked.
 
+## Public Repos
+Everything committed to a public repo is published on push, commit messages included; removing it later means rewriting history and recreating the repo. Check visibility with `gh repo view --json visibility`.
+- Never commit credentials, personal information, private repo or project names (or their issue/PR numbers), internal URLs, machine specifics (hostnames, home paths, container names, password manager or signing setup, display setup), run notes or retros about other work, or campaign content. The exception is a repo whose purpose is this machine's setup (dotfiles).
+- Point to a detail instead of copying it: a machine recipe stays in this file, a project fact in that project. Use placeholders (`owner/repo`, `example.com`, `com.example.app`), in bad examples too.
+- Opt a public repo into the commit check with `git config privacy.public true`: the global hooks in `~/.config/git/hooks` then block private terms from built-ins and `~/.config/git/private-terms` (local only, never committed). Add a term there whenever one nearly slips through. Never bypass with `--no-verify`.
+
 ## Environment
 - Host is Bazzite (immutable Fedora Atomic). Build GUI/desktop apps inside the `arch-dev` distrobox, not on the host.
 - Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`.

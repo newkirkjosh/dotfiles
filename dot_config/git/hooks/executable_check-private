@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Fail when text about to be published matches a private term. Terms are
+# built-in patterns (absolute home paths), ~/.config/git/private-terms (local
+# only, never in this repo) and the repo's own gitignored private-terms.local:
+# one extended regex per line, matched case-insensitively; blank lines and
+# lines starting with # are ignored.
+#
+# Run by the global hook dispatcher (_run) in repos with privacy.public=true.
+# usage: check-private --staged       added lines in the index
+#        check-private --msg <file>   a commit message
+#        check-private [--all]        every tracked file
+set -euo pipefail
+
+top="$(git rev-parse --show-toplevel)"
+patterns=('/var/home/' '/home/[a-z_][a-z0-9_-]*/' '/Users/[A-Za-z]')
+found_terms=0
+for f in "${XDG_CONFIG_HOME:-$HOME/.config}/git/private-terms" "$top/private-terms.local"; do
+  [ -f "$f" ] || continue
+  found_terms=1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue ;; esac
+    patterns+=("$line")
+  done < "$f"
+done
+[ "$found_terms" -eq 1 ] || echo "check-private: no private-terms file; checking built-in patterns only" >&2
+
+args=()
+for p in "${patterns[@]}"; do args+=(-e "$p"); done
+
+case "${1:---all}" in
+  --staged)
+    hits="$(git diff --cached -U0 --no-color | grep -E '^\+' | grep -vE '^\+\+\+ ' | grep -inE "${args[@]}" || true)" ;;
+  --msg)
+    hits="$(grep -vE '^#' "$2" | grep -inE "${args[@]}" || true)" ;;
+  --all)
+    hits="$(git -C "$top" grep -inIE "${args[@]}" || true)" ;;
+  *)
+    echo "usage: $0 [--staged | --msg <file> | --all]" >&2; exit 2 ;;
+esac
+
+if [ -n "$hits" ]; then
+  echo "check-private: private terms found in a public repo (fix the text; never --no-verify):" >&2
+  echo "$hits" >&2
+  exit 1
+fi
