@@ -55,7 +55,7 @@ DANGEROUS_PATTERNS=(
   "push${A}[[:space:]]+(--force[^[:space:]]*|-[a-zA-Z]*f[a-zA-Z]*|\+[^[:space:]]+)([[:space:]]|$)"
   # worktrunk: removing a worktree with uncommitted changes or an unmerged branch.
   # Plain `wt remove` refuses both on its own.
-  "wt([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+remove${A}[[:space:]]+(-[a-zA-Z]*[fD][a-zA-Z]*|--force|--force-delete)([[:space:]]|$)"
+  "wt${A}[[:space:]]+remove${A}[[:space:]]+(-[a-zA-Z]*[fD][a-zA-Z]*|--force|--force-delete)([[:space:]]|$)"
 )
 
 block() {

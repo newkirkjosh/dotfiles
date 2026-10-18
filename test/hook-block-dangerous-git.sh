@@ -51,7 +51,8 @@ for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C
          "git push origin 'a|b' -f" "git push origin \"a;b\" --force" "git push origin a\\;b --force" "git push \"-f\" origin" \
          "git push origin '+main'" "git reset 'x;y' --hard" "git 'reset' --hard" "git clean \"-fd\"" "git branch '-D' x" \
          $'git commit -m "a\nb" && git push -f origin main' $'echo "x\ny"\ngit reset --hard' \
-         "wt remove -D feat/x" "wt remove --force-delete feat/x" "wt remove -f" "wt remove --force feat/x" "wt -C /r remove -D x"; do
+         "wt remove -D feat/x" "wt remove --force-delete feat/x" "wt remove -f" "wt remove --force feat/x" "wt -C /r remove -D x" \
+         "wt -y remove -D x" "wt --config /c.toml remove --force-delete x" "wt -v -C /r remove -yD x" "/usr/bin/wt remove -f"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
 for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f" \
