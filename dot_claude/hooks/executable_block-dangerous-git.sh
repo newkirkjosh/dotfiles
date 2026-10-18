@@ -20,11 +20,14 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 # removes them too, so "-f" is -f), and ; & | that are quoted or
 # backslash-escaped turned into _, so only real separators end a command.
 normalize() {
-  awk '{
+  # The whole command is one string: quotes span lines (a multi-line commit
+  # message), so quote state must survive newlines.
+  awk '{ s = s (NR > 1 ? "\n" : "") $0 }
+  END {
     out = ""; q = ""
-    for (i = 1; i <= length($0); i++) {
-      c = substr($0, i, 1)
-      if (q == "" && c == "\\") { i++; n = substr($0, i, 1); out = out (n ~ /[;&|]/ ? "_" : n); continue }
+    for (i = 1; i <= length(s); i++) {
+      c = substr(s, i, 1)
+      if (q == "" && c == "\\") { i++; n = substr(s, i, 1); out = out (n ~ /[;&|]/ ? "_" : n); continue }
       if (q == "" && (c == "\047" || c == "\"")) { q = c; continue }
       if (q != "" && c == q) { q = ""; continue }
       if (q != "" && c ~ /[;&|]/) c = "_"
