@@ -12,7 +12,6 @@
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
-CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 
 # Extended regexes. G matches `git` plus any -C <dir> / -c <key=val> options,
 # so `git -C repo reset --hard` is caught like `git reset --hard`.
@@ -41,12 +40,13 @@ merged_branch_delete_ok() {
   case "$COMMAND" in
     *';'*|*'&'*|*'|'*|*'`'*|*'$'*|*'>'*|*'<'*|*$'\n'*) echo "not a single command"; return 1 ;;
   esac
-  local re='^[[:space:]]*git[[:space:]]+(-C[[:space:]]+([^[:space:]]+)[[:space:]]+)?branch[[:space:]]+-D[[:space:]]+([A-Za-z0-9._/-]+)[[:space:]]*$'
-  [[ $COMMAND =~ $re ]] || { echo "only 'git [-C <dir>] branch -D <branch>' is checked"; return 1; }
-  local dir=${BASH_REMATCH[2]:-$CWD} branch=${BASH_REMATCH[3]}
-  # Only an absolute path means the same directory to this hook and to git:
-  # a relative -C resolves against the shell's cwd, ~user against passwd.
-  case "$dir" in /*) ;; *) echo "-C needs an absolute path"; return 1 ;; esac
+  # An explicit absolute -C path of plain characters means the same directory
+  # to this hook and to git: no relative path or cwd guess, no quotes, escapes,
+  # globs or ~ that the shell would rewrite before git sees them.
+  local re='^[[:space:]]*git[[:space:]]+-C[[:space:]]+(/[A-Za-z0-9._/+-]*)[[:space:]]+branch[[:space:]]+-D[[:space:]]+([A-Za-z0-9._/-]+)[[:space:]]*$'
+  [[ $COMMAND =~ $re ]] || { echo "only 'git -C <absolute path> branch -D <branch>' is checked"; return 1; }
+  local dir=${BASH_REMATCH[1]} branch=${BASH_REMATCH[2]}
+  case "$branch" in -*) echo "branch name looks like an option"; return 1 ;; esac
   [ -d "$dir" ] || { echo "no repository directory"; return 1; }
   local tip head
   tip=$(git -C "$dir" rev-parse --verify --quiet "refs/heads/$branch") || { echo "no local branch $branch"; return 1; }

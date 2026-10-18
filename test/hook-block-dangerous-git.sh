@@ -54,9 +54,18 @@ for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f"
   run "$c"; check "allowed: $c" '[ $rc = 0 ]'
 done
 
-STUB_HEAD=$tip run "git branch -D feat/x"
+STUB_HEAD=$tip run "git -C $repo branch -D feat/x"
 check "merged PR with same head: delete allowed" '[ $rc = 0 ]'
 check "asks GitHub about that branch" 'grep -q -- "--head feat/x --state merged" "$STUB_LOG"'
+
+: > "$STUB_LOG"
+STUB_HEAD=$tip run "git branch -D feat/x"
+check "no -C: blocked without asking GitHub" '[ $rc = 2 ] && [ ! -s "$STUB_LOG" ]'
+for d in "\"$repo\"" "'$repo'" "${repo%/*}/*" "${repo%/*}/re?o" "$repo\\x" '/tmp/$HOME' "~$repo"; do
+  STUB_HEAD=$tip run "git -C $d branch -D feat/x"
+  check "path the shell would rewrite: $d" '[ $rc = 2 ]'
+done
+check "rewritable paths never reach GitHub" '[ ! -s "$STUB_LOG" ] || ! grep -q . "$STUB_LOG"'
 
 STUB_HEAD=$tip run "git -C $repo branch -D feat/x" "$work"
 check "-C <dir> form allowed" '[ $rc = 0 ]'
@@ -71,13 +80,13 @@ check "~user -C path: blocked" '[ $rc = 2 ] && [[ $err == *"absolute path"* ]]'
 STUB_HEAD=$tip run "git branch -D feat/x" "relative/cwd"
 check "relative cwd in payload: blocked" '[ $rc = 2 ]'
 
-STUB_HEAD=0000000000000000000000000000000000000000 run "git branch -D feat/x"
+STUB_HEAD=0000000000000000000000000000000000000000 run "git -C $repo branch -D feat/x"
 check "local commits not in the PR: blocked" '[ $rc = 2 ] && [[ $err == *"commits the merged PR does not"* ]]'
 
-STUB_HEAD= run "git branch -D feat/x"
+STUB_HEAD= run "git -C $repo branch -D feat/x"
 check "no merged PR: blocked" '[ $rc = 2 ] && [[ $err == *"no merged PR"* ]]'
 
-STUB_HEAD=$tip run "git branch -D feat/missing"
+STUB_HEAD=$tip run "git -C $repo branch -D feat/missing"
 check "unknown branch: blocked" '[ $rc = 2 ] && [[ $err == *"no local branch"* ]]'
 
 : > "$STUB_LOG"
