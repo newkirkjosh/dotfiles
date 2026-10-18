@@ -26,7 +26,7 @@ DANGEROUS_PATTERNS=(
   "$BRANCH_DELETE"
   "${G}checkout${A}[[:space:]]+\."
   "${G}restore${A}[[:space:]]+\."
-  "push${A}[[:space:]]+(--force[^[:space:]]*|-f)([[:space:]]|$)"
+  "push${A}[[:space:]]+(--force[^[:space:]]*|-[a-zA-Z]*f[a-zA-Z]*|\+[^[:space:]]+)([[:space:]]|$)"
 )
 
 block() {

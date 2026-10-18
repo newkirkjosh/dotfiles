@@ -46,7 +46,8 @@ for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C
          "git checkout ." "git checkout -- ." "git restore ." "git restore --staged ." \
          "git branch --delete --force feat/x" "git -C $repo branch -fD feat/x" \
          "git checkout ./src" "git checkout HEAD -- ./src" "git restore ./a.txt" "git restore --source=HEAD ." \
-         "git reset -q --hard" "git reset --quiet --hard HEAD~1" "git clean -d --force" "git clean -n -f"; do
+         "git reset -q --hard" "git reset --quiet --hard HEAD~1" "git clean -d --force" "git clean -n -f" \
+         "git push -fu origin main" "git push -uf origin feat/x" "git push origin +main" "git push origin +HEAD:main"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
 for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f"; do
@@ -87,6 +88,25 @@ for c in "git branch -D feat/x && git reset --hard" "git branch -D feat/x; rm -r
   check "blocked: $c" '[ $rc = 2 ]'
 done
 check "rejected forms never reach GitHub" '[ ! -s "$STUB_LOG" ]'
+
+# Differential against the original substring patterns: anything they blocked
+# must stay blocked, across spellings and prefixes.
+old_patterns=("git reset --hard" "git clean -fd" "git clean -f" "git branch -D" "git checkout \." "git restore \." "push --force" "push -f")
+old_blocks() { local p; for p in "${old_patterns[@]}"; do echo "$1" | grep -qE "$p" && return 0; done; return 1; }
+regressions=0 total=0
+for verb in "reset --hard" "reset --hard HEAD~2" "clean -f" "clean -fd" "clean -fdx" "clean -ff" "branch -D x" "branch -Dq x" "branch -D" \
+            "checkout ." "checkout ./a" "checkout .." "checkout .gitignore" "restore ." "restore ./a" "restore .x" \
+            "push --force" "push --force-with-lease" "push -f" "push -fu o m" "push -force" "push -fq" "push origin main -f" "push origin --force"; do
+  for g in "git " "/usr/bin/git " "git -C /r " "git -c a=b " "\\git " "command git "; do
+    for pre in "" "cd /x && " "sudo " "FOO=1 " "echo hi; " "("; do
+      c="$pre$g$verb"; total=$((total + 1))
+      old_blocks "$c" || continue
+      STUB_HEAD= run "$c" "/nonexistent"
+      [ $rc = 2 ] || { regressions=$((regressions + 1)); echo "  regression: $c"; }
+    done
+  done
+done
+check "no regression against the original patterns ($total commands)" '[ $regressions = 0 ]'
 
 echo
 echo "$pass passed, $fail failed"
