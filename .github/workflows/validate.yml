@@ -48,3 +48,6 @@ jobs:
 
       - name: Run validation
         run: bash test/validate.sh
+
+      - name: Test the dangerous-git hook
+        run: bash test/hook-block-dangerous-git.sh
