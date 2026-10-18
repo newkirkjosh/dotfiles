@@ -64,49 +64,13 @@ for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f"
   run "$c"; check "allowed: $c" '[ $rc = 0 ]'
 done
 
-STUB_HEAD=$tip run "git -C $repo branch -D feat/x"
-check "merged PR with same head: delete allowed" '[ $rc = 0 ]'
-check "asks GitHub about that branch" 'grep -q -- "--head feat/x --state merged" "$STUB_LOG"'
-
 : > "$STUB_LOG"
-STUB_HEAD=$tip run "git branch -D feat/x"
-check "no -C: blocked without asking GitHub" '[ $rc = 2 ] && [ ! -s "$STUB_LOG" ]'
-for d in "\"$repo\"" "'$repo'" "${repo%/*}/*" "${repo%/*}/re?o" "$repo\\x" '/tmp/$HOME' "~$repo"; do
-  STUB_HEAD=$tip run "git -C $d branch -D feat/x"
-  check "path the shell would rewrite: $d" '[ $rc = 2 ]'
-done
-check "rewritable paths never reach GitHub" '[ ! -s "$STUB_LOG" ] || ! grep -q . "$STUB_LOG"'
-
-STUB_HEAD=$tip run "git -C $repo branch -D feat/x" "$work"
-check "-C <dir> form allowed" '[ $rc = 0 ]'
-: > "$STUB_LOG"; STUB_HEAD= run "git -C $repo branch -D feat/x" "$work"
-check "-C <dir> form is checked, not skipped" '[ $rc = 2 ] && [ -s "$STUB_LOG" ]'
-
-: > "$STUB_LOG"
-STUB_HEAD=$tip run "git -C repo branch -D feat/x" "$work"
-check "relative -C path: blocked without asking GitHub" '[ $rc = 2 ] && [[ $err == *"absolute path"* ]] && [ ! -s "$STUB_LOG" ]'
-STUB_HEAD=$tip run "git -C ~nobody branch -D feat/x"
-check "~user -C path: blocked" '[ $rc = 2 ] && [[ $err == *"absolute path"* ]]'
-STUB_HEAD=$tip run "git branch -D feat/x" "relative/cwd"
-check "relative cwd in payload: blocked" '[ $rc = 2 ]'
-
-STUB_HEAD=0000000000000000000000000000000000000000 run "git -C $repo branch -D feat/x"
-check "local commits not in the PR: blocked" '[ $rc = 2 ] && [[ $err == *"commits the merged PR does not"* ]]'
-
-STUB_HEAD= run "git -C $repo branch -D feat/x"
-check "no merged PR: blocked" '[ $rc = 2 ] && [[ $err == *"no merged PR"* ]]'
-
-STUB_HEAD=$tip run "git -C $repo branch -D feat/missing"
-check "unknown branch: blocked" '[ $rc = 2 ] && [[ $err == *"no local branch"* ]]'
-
-: > "$STUB_LOG"
-for c in "git branch -D feat/x && git reset --hard" "git branch -D feat/x; rm -rf /tmp/x" \
-         "git branch -D \$(git branch --show-current)" "git branch -D feat/x | cat" \
-         "git branch -D feat/x feat/y" "git branch -D -f feat/x"; do
+for c in "git branch -D feat/x" "git -C $repo branch -D feat/x" "git branch -D feat/x && git reset --hard" \
+         "git branch -D \$(git branch --show-current)" "git branch -D feat/x feat/y" "git branch -D -f feat/x"; do
   STUB_HEAD=$tip run "$c"
-  check "blocked: $c" '[ $rc = 2 ]'
+  check "force-delete always blocked: $c" '[ $rc = 2 ]'
 done
-check "rejected forms never reach GitHub" '[ ! -s "$STUB_LOG" ]'
+check "the hook never calls GitHub" '[ ! -s "$STUB_LOG" ]'
 
 # Differential against the original substring patterns: anything they blocked
 # must stay blocked, across spellings and prefixes.
