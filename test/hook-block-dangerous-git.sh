@@ -47,7 +47,9 @@ for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C
          "git branch --delete --force feat/x" "git -C $repo branch -fD feat/x" \
          "git checkout ./src" "git checkout HEAD -- ./src" "git restore ./a.txt" "git restore --source=HEAD ." \
          "git reset -q --hard" "git reset --quiet --hard HEAD~1" "git clean -d --force" "git clean -n -f" \
-         "git push -fu origin main" "git push -uf origin feat/x" "git push origin +main" "git push origin +HEAD:main"; do
+         "git push -fu origin main" "git push -uf origin feat/x" "git push origin +main" "git push origin +HEAD:main" \
+         "git push origin 'a|b' -f" "git push origin \"a;b\" --force" "git push origin a\\;b --force" "git push \"-f\" origin" \
+         "git push origin '+main'" "git reset 'x;y' --hard" "git 'reset' --hard" "git clean \"-fd\"" "git branch '-D' x"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
 for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f" \

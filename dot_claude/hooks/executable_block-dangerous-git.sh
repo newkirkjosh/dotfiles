@@ -13,6 +13,28 @@
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 
+# Limit: this is a guardrail against mistakes, not an adversary. Flags that
+# only exist after expansion (`git push $FLAGS`, `$(...)`) can't be seen here.
+#
+# What the patterns are matched against: quote characters removed (the shell
+# removes them too, so "-f" is -f), and ; & | that are quoted or
+# backslash-escaped turned into _, so only real separators end a command.
+normalize() {
+  awk '{
+    out = ""; q = ""
+    for (i = 1; i <= length($0); i++) {
+      c = substr($0, i, 1)
+      if (q == "" && c == "\\") { i++; n = substr($0, i, 1); out = out (n ~ /[;&|]/ ? "_" : n); continue }
+      if (q == "" && (c == "\047" || c == "\"")) { q = c; continue }
+      if (q != "" && c == q) { q = ""; continue }
+      if (q != "" && c ~ /[;&|]/) c = "_"
+      out = out c
+    }
+    print out
+  }'
+}
+MATCH=$(printf '%s\n' "$COMMAND" | normalize)
+
 # Extended regexes. G matches `git` plus any -C <dir> / -c <key=val> options,
 # so `git -C repo reset --hard` is caught like `git reset --hard`.
 G='git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+'
@@ -60,7 +82,7 @@ merged_branch_delete_ok() {
 }
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if echo "$COMMAND" | grep -qE "$pattern"; then
+  if printf '%s\n' "$MATCH" | grep -qE "$pattern"; then
     if [ "$pattern" = "$BRANCH_DELETE" ]; then
       reason=$(merged_branch_delete_ok) && exit 0
       block "$pattern" "$reason"
