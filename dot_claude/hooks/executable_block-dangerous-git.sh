@@ -17,8 +17,10 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 # so `git -C repo reset --hard` is caught like `git reset --hard`.
 G='git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+'
 BRANCH_DELETE="${G}branch[[:space:]]+(-D|-[a-zA-Z]*D[a-zA-Z]*|--delete[[:space:]]+--force|--force[[:space:]]+--delete)([[:space:]]|$)"
-# A = any further arguments, so flags in front of the dangerous one don't hide it.
-A='([[:space:]]+[^[:space:]]+)*'
+# A = any further arguments of the same command, so flags in front of the
+# dangerous one don't hide it. Tokens stop at ; & | so a later command in a
+# chain (`git push && tail -n +2`) isn't read as this one's arguments.
+A='([[:space:]]+[^[:space:];&|]+)*'
 DANGEROUS_PATTERNS=(
   "${G}reset${A}[[:space:]]+--hard"
   "${G}clean${A}[[:space:]]+(-[a-zA-Z]*f|--force)"

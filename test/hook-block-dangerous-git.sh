@@ -50,7 +50,9 @@ for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C
          "git push -fu origin main" "git push -uf origin feat/x" "git push origin +main" "git push origin +HEAD:main"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
-for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f"; do
+for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f" \
+         "git push -q origin --delete feat/x && tail -n +2 f" "git push origin x && rm -f tmp" "git push origin x; ls -f" \
+         "git reset HEAD; echo --hard" "git clean -n | grep -f pats" "git checkout main && cat ./README"; do
   run "$c"; check "allowed: $c" '[ $rc = 0 ]'
 done
 
