@@ -44,7 +44,9 @@ run "git push --force origin main";                 check "force push still bloc
 for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C $repo clean -fdx" \
          "git push -f origin main" "git push origin main --force-with-lease" "git -C $repo push --force" \
          "git checkout ." "git checkout -- ." "git restore ." "git restore --staged ." \
-         "git branch --delete --force feat/x" "git -C $repo branch -fD feat/x"; do
+         "git branch --delete --force feat/x" "git -C $repo branch -fD feat/x" \
+         "git checkout ./src" "git checkout HEAD -- ./src" "git restore ./a.txt" "git restore --source=HEAD ." \
+         "git reset -q --hard" "git reset --quiet --hard HEAD~1" "git clean -d --force" "git clean -n -f"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
 for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f"; do
@@ -59,6 +61,14 @@ STUB_HEAD=$tip run "git -C $repo branch -D feat/x" "$work"
 check "-C <dir> form allowed" '[ $rc = 0 ]'
 : > "$STUB_LOG"; STUB_HEAD= run "git -C $repo branch -D feat/x" "$work"
 check "-C <dir> form is checked, not skipped" '[ $rc = 2 ] && [ -s "$STUB_LOG" ]'
+
+: > "$STUB_LOG"
+STUB_HEAD=$tip run "git -C repo branch -D feat/x" "$work"
+check "relative -C path: blocked without asking GitHub" '[ $rc = 2 ] && [[ $err == *"absolute path"* ]] && [ ! -s "$STUB_LOG" ]'
+STUB_HEAD=$tip run "git -C ~nobody branch -D feat/x"
+check "~user -C path: blocked" '[ $rc = 2 ] && [[ $err == *"absolute path"* ]]'
+STUB_HEAD=$tip run "git branch -D feat/x" "relative/cwd"
+check "relative cwd in payload: blocked" '[ $rc = 2 ]'
 
 STUB_HEAD=0000000000000000000000000000000000000000 run "git branch -D feat/x"
 check "local commits not in the PR: blocked" '[ $rc = 2 ] && [[ $err == *"commits the merged PR does not"* ]]'

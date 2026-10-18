@@ -18,13 +18,15 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 # so `git -C repo reset --hard` is caught like `git reset --hard`.
 G='git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+'
 BRANCH_DELETE="${G}branch[[:space:]]+(-D|-[a-zA-Z]*D[a-zA-Z]*|--delete[[:space:]]+--force|--force[[:space:]]+--delete)([[:space:]]|$)"
+# A = any further arguments, so flags in front of the dangerous one don't hide it.
+A='([[:space:]]+[^[:space:]]+)*'
 DANGEROUS_PATTERNS=(
-  "${G}reset[[:space:]]+--hard"
-  "${G}clean[[:space:]]+-[a-zA-Z]*f"
+  "${G}reset${A}[[:space:]]+--hard"
+  "${G}clean${A}[[:space:]]+(-[a-zA-Z]*f|--force)"
   "$BRANCH_DELETE"
-  "${G}checkout[[:space:]]+(--[[:space:]]+)?\.([[:space:]]|$)"
-  "${G}restore[[:space:]]+.*\.([[:space:]]|$)"
-  "push([[:space:]]+[^[:space:]]+)*[[:space:]]+(--force[^[:space:]]*|-f)([[:space:]]|$)"
+  "${G}checkout${A}[[:space:]]+\."
+  "${G}restore${A}[[:space:]]+\."
+  "push${A}[[:space:]]+(--force[^[:space:]]*|-f)([[:space:]]|$)"
 )
 
 block() {
@@ -42,8 +44,10 @@ merged_branch_delete_ok() {
   local re='^[[:space:]]*git[[:space:]]+(-C[[:space:]]+([^[:space:]]+)[[:space:]]+)?branch[[:space:]]+-D[[:space:]]+([A-Za-z0-9._/-]+)[[:space:]]*$'
   [[ $COMMAND =~ $re ]] || { echo "only 'git [-C <dir>] branch -D <branch>' is checked"; return 1; }
   local dir=${BASH_REMATCH[2]:-$CWD} branch=${BASH_REMATCH[3]}
-  dir=${dir/#\~/$HOME}
-  [ -n "$dir" ] && [ -d "$dir" ] || { echo "no repository directory"; return 1; }
+  # Only an absolute path means the same directory to this hook and to git:
+  # a relative -C resolves against the shell's cwd, ~user against passwd.
+  case "$dir" in /*) ;; *) echo "-C needs an absolute path"; return 1 ;; esac
+  [ -d "$dir" ] || { echo "no repository directory"; return 1; }
   local tip head
   tip=$(git -C "$dir" rev-parse --verify --quiet "refs/heads/$branch") || { echo "no local branch $branch"; return 1; }
   head=$(cd "$dir" && timeout 15 gh pr list --head "$branch" --state merged --limit 1 \
