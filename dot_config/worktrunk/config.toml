@@ -1,0 +1,6 @@
+# Worktrunk user config (https://worktrunk.dev/config.md). Shared by the host
+# and arch-dev, which mount the same home directory.
+
+# Worktrees live inside each repository, in a gitignored .worktrees/ folder,
+# named after the branch. Repositories must ignore .worktrees/.
+worktree-path = "{{ repo_path }}/.worktrees/{{ branch | sanitize }}"

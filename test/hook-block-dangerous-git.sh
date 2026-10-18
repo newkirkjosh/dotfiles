@@ -50,14 +50,16 @@ for c in "git -C $repo reset --hard" "git -c core.x=y reset --hard HEAD" "git -C
          "git push -fu origin main" "git push -uf origin feat/x" "git push origin +main" "git push origin +HEAD:main" \
          "git push origin 'a|b' -f" "git push origin \"a;b\" --force" "git push origin a\\;b --force" "git push \"-f\" origin" \
          "git push origin '+main'" "git reset 'x;y' --hard" "git 'reset' --hard" "git clean \"-fd\"" "git branch '-D' x" \
-         $'git commit -m "a\nb" && git push -f origin main' $'echo "x\ny"\ngit reset --hard'; do
+         $'git commit -m "a\nb" && git push -f origin main' $'echo "x\ny"\ngit reset --hard' \
+         "wt remove -D feat/x" "wt remove --force-delete feat/x" "wt remove -f" "wt remove --force feat/x" "wt -C /r remove -D x"; do
   STUB_HEAD= run "$c"; check "blocked: $c" '[ $rc = 2 ]'
 done
 for c in "git checkout main" "git restore src/a.kt" "git push origin feat/fix-f" "git branch -d feat/x" "git log --format=-f" \
          "git push -q origin --delete feat/x && tail -n +2 f" "git push origin x && rm -f tmp" "git push origin x; ls -f" \
          "git reset HEAD; echo --hard" "git clean -n | grep -f pats" "git checkout main && cat ./README" \
          $'git commit -m "subject\n\nbody line\n" && git push -u origin feat/x 2>&1 | grep -v \'^remote\'; gh pr create --body-file b.md' \
-         $'git commit -m "a\nb" && git push origin x && tail -n +2 f'; do
+         $'git commit -m "a\nb" && git push origin x && tail -n +2 f' \
+         "wt remove" "wt remove feat/x" "wt list --full" "wt switch --create feat/y"; do
   run "$c"; check "allowed: $c" '[ $rc = 0 ]'
 done
 

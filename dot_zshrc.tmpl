@@ -34,6 +34,9 @@ fi
 # ─── Local secrets (git-ignored; sourced if present) ─────────────────
 [[ -f ~/.secrets ]] && source ~/.secrets
 
+# ─── Worktrunk (wt): lets `wt switch` change this shell's directory ──
+command -v wt >/dev/null 2>&1 && eval "$(wt config shell init zsh)"
+
 # ─── 1Password SSH agent ─────────────────────────────────────────────
 # Native Linux 1Password: enable SSH agent in Settings → Developer.
 export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"

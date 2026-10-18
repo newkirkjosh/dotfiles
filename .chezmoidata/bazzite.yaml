@@ -57,6 +57,7 @@ bazzite:
     - gh                      # GitHub CLI — host-side; arch-dev has its own copy via pacman
     - git-delta               # chezmoi pager + git diff renderer on the host
     - rclone                  # dnd-backup: one-way D&D vault sync to Google Drive
+    - worktrunk               # git worktree CLI (`wt`) — host-side; arch-dev has its own copy via pacman
 
   # Nerd Fonts — installed to ~/.local/share/fonts/ on the host for Konsole and other GUI apps.
   # run_onchange_after_install-fonts.sh.tmpl handles download + fc-cache.
