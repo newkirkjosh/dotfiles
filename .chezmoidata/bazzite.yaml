@@ -53,7 +53,6 @@ bazzite:
   # All dev CLI tooling lives inside the distrobox.
   brew:
     - chezmoi
-    - 1password-cli           # occasional host-side secret retrieval at apply-time
     - gh                      # GitHub CLI — host-side; arch-dev has its own copy via pacman
     - git-delta               # chezmoi pager + git diff renderer on the host
     - rclone                  # dnd-backup: one-way D&D vault sync to Google Drive
