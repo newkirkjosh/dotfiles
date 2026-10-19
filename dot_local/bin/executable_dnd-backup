@@ -2,8 +2,9 @@
 # One-way backup of the D&D vault (~/Documents/dnd) to Google Drive, into the
 # backup folder Joshua created in Drive.
 #
-# The vault is deliberately not a git repo (players' backstories and paid
-# module text never go on GitHub), so this is its only off-machine copy.
+# The vault has a local-only git repo with no remote (players' backstories and
+# paid module text never go on GitHub), so this is its only off-machine copy.
+# .git is skipped: its pack files churn and would fill changed/.
 #
 #   <remote>/current            mirror of the vault as of the last run
 #   <remote>/changed/YYYY-MM-DD files that run overwrote or deleted
@@ -42,6 +43,7 @@ fi
 
 rclone sync "$SRC" "${REMOTE}current" \
     --backup-dir "${REMOTE}changed/$(date +%F)" \
+    --exclude "/.git/**" \
     --fast-list --stats-one-line --stats 0 -v
 
 rclone delete "${REMOTE}changed" --min-age "$RETENTION" --rmdirs 2>/dev/null || true
