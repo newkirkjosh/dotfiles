@@ -10,7 +10,9 @@
 Persistent notes live in `~/.claude/projects/-var-home-fuzzyfission/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
 
 ## Skill Invocation
-Always check for applicable skills before acting. Even a 1% chance a skill applies means invoke it. Announce which skill is being used before proceeding. Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`.
+Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`. They are explicit-use only: load one when I name it, or when a workflow I invoked calls it, never because a request resembles its domain. A workflow's rules end at its handoff; later requests don't inherit them. For plugin skills, check before acting and invoke one that applies. Announce which skill is being used before proceeding.
+
+Paths the `learn` skill needs: this file's source is `~/.local/share/chezmoi/dot_claude/CLAUDE.md` (edit it, then `chezmoi apply ~/.claude/CLAUDE.md`; check `chezmoi diff ~/.claude/CLAUDE.md` is empty first). The D&D vault is `~/Documents/dnd`, rules in its `.claude/rules/`.
 
 ## Tool Preferences
 Prefer dedicated tools over Bash equivalents:
