@@ -51,3 +51,6 @@ jobs:
 
       - name: Test the dangerous-git hook
         run: bash test/hook-block-dangerous-git.sh
+
+      - name: Test the secret keyring helper
+        run: bash test/secret.sh

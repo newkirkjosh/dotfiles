@@ -53,6 +53,19 @@ op read "op://Personal/GitHub/token"   # read via secret-reference
 
 Use secret references (`op://vault/item/field`) in scripts and templates — never raw values.
 
+## Caching secrets for the session (`secret`)
+
+`~/.local/bin/secret` caches secrets in the kernel user keyring, so 1Password prompts once per boot instead of on every use. Nothing touches disk.
+
+```sh
+secret load              # after boot: one 1Password prompt, loads every name
+secret get unifi-api     # anywhere afterwards, no prompt (loads on a miss)
+secret list              # names and whether each is cached
+secret clear             # drop them all
+```
+
+Names map to references in `~/.config/secret/refs` (local only, not in this repo), one `name op://vault/item/field` per line. Keys expire after 12h (`SECRET_TTL` in seconds, `0` = never). Inside `arch-dev` the call is handed to the host through `distrobox-host-exec`, because the container has its own keyring and no `op`. Any process running as you can read a cached key, the same exposure as an unlocked `op` session.
+
 ## Migration notes from WSL
 
 - Remove `.zshrc` block that spawned `socat` + `npiperelay` — no longer needed.
