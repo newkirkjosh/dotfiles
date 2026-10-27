@@ -16,7 +16,7 @@ C_RESET=$'\e[0m'
 # IFS as "collapse runs and trim edges", which silently drops empty fields
 # (context_window/rate_limits are absent on first launch or right after
 # /clear) and shifts everything left — e.g. model ends up in used's slot.
-IFS=$'\x1f' read -r cwd used model five_hour < <(printf '%s' "$input" | python3 -c '
+IFS=$'\x1f' read -r cwd used model five_hour five_reset < <(printf '%s' "$input" | python3 -c '
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -25,10 +25,22 @@ except Exception:
 cwd       = (d.get("workspace") or {}).get("current_dir") or d.get("cwd") or ""
 used      = (d.get("context_window") or {}).get("used_percentage")
 model     = (d.get("model") or {}).get("display_name") or ""
-five_hour = ((d.get("rate_limits") or {}).get("five_hour") or {}).get("used_percentage")
+fh        = (d.get("rate_limits") or {}).get("five_hour") or {}
+five_hour = fh.get("used_percentage")
+reset     = fh.get("resets_at")
+# resets_at may be epoch seconds or an ISO-8601 string; normalise to epoch.
+r = ""
+if isinstance(reset, (int, float)):
+    r = str(int(reset))
+elif isinstance(reset, str) and reset:
+    from datetime import datetime
+    try:
+        r = str(int(datetime.fromisoformat(reset.replace("Z", "+00:00")).timestamp()))
+    except ValueError:
+        pass
 u = str(used) if used is not None else ""
 f = str(five_hour) if five_hour is not None else ""
-print("\x1f".join([cwd, u, model, f]))
+print("\x1f".join([cwd, u, model, f, r]))
 ')
 
 # Directory — truncate to 3 components, matching starship truncation_length=3
@@ -79,9 +91,28 @@ fi
 ctx=""
 [ -n "$used" ] && ctx=" ${C_GREEN}ctx:$(printf '%.0f' "$used")%${C_RESET}"
 
-# Session usage limit (5-hour window)
+# Session usage limit (5-hour window). rate_limits is absent on first launch
+# and right after /clear, so keep the last value seen and reuse it until its
+# window resets; a stale reading is marked with "~".
 session_limit=""
-[ -n "$five_hour" ] && session_limit=" ${C_YELLOW}5h:$(printf '%.0f' "$five_hour")%${C_RESET}"
+cache="${XDG_RUNTIME_DIR:-/tmp}/claude-statusline-5h"
+now=$(date +%s)
+stale=""
+if [ -n "$five_hour" ]; then
+  printf '%s %s\n' "$five_hour" "$five_reset" > "$cache" 2>/dev/null || true
+elif [ -r "$cache" ]; then
+  read -r c_pct c_reset < "$cache" || true
+  if [ -n "${c_pct:-}" ] && { [ -z "${c_reset:-}" ] || [ "$c_reset" -gt "$now" ]; }; then
+    five_hour=$c_pct five_reset=${c_reset:-} stale="~"
+  fi
+fi
+if [ -n "$five_hour" ]; then
+  reset_str=""
+  if [ -n "$five_reset" ] && [ "$five_reset" -gt "$now" ] 2>/dev/null; then
+    reset_str=" ↻$(date -d "@$five_reset" +%H:%M)"
+  fi
+  session_limit=" ${C_YELLOW}5h:${stale}$(printf '%.0f' "$five_hour")%${reset_str}${C_RESET}"
+fi
 
 # Model
 model_str=""
