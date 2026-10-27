@@ -95,14 +95,20 @@ ctx=""
 # and right after /clear, so keep the last value seen and reuse it until its
 # window resets; a stale reading is marked with "~".
 session_limit=""
-cache="${XDG_RUNTIME_DIR:-/tmp}/claude-statusline-5h"
+cache="${XDG_RUNTIME_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/claude-statusline-5h"
 now=$(date +%s)
 stale=""
 if [ -n "$five_hour" ]; then
-  printf '%s %s\n' "$five_hour" "$five_reset" > "$cache" 2>/dev/null || true
-elif [ -r "$cache" ]; then
+  # Write via a temp file in the same directory, then rename, so a reader
+  # never sees a partial line and an existing symlink is replaced, not followed.
+  tmp=$(mktemp "${cache}.XXXXXX" 2>/dev/null) \
+    && printf '%s %s\n' "$five_hour" "$five_reset" > "$tmp" && mv -f "$tmp" "$cache" \
+    || rm -f "${tmp:-}"
+elif [ -f "$cache" ] && [ ! -L "$cache" ] && [ -O "$cache" ]; then
   read -r c_pct c_reset < "$cache" || true
-  if [ -n "${c_pct:-}" ] && { [ -z "${c_reset:-}" ] || [ "$c_reset" -gt "$now" ]; }; then
+  [[ ${c_pct:-} =~ ^[0-9]+(\.[0-9]+)?$ ]] || c_pct=""
+  [[ ${c_reset:-} =~ ^[0-9]+$ ]] || c_reset=""
+  if [ -n "$c_pct" ] && { [ -z "$c_reset" ] || [ "$c_reset" -gt "$now" ]; }; then
     five_hour=$c_pct five_reset=${c_reset:-} stale="~"
   fi
 fi
