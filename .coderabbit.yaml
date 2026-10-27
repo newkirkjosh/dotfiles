@@ -1,0 +1,11 @@
+# CodeRabbit configuration (free on public repositories). CLAUDE.md holds
+# this repo's conventions and is read by default as a code guideline.
+language: en-US
+reviews:
+  profile: chill
+  high_level_summary: false
+  poem: false
+  review_status: false
+  path_instructions:
+    - path: "**"
+      instructions: "This repo is public. Flag credentials, tokens, keys, personal details, private repo or project names and internal URLs. Secrets come from 1Password at apply time, never from committed files."
