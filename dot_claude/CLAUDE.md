@@ -23,6 +23,10 @@ Prefer dedicated tools over Bash equivalents:
 - Write files: Write (not echo/heredoc)
 Reserve Bash for operations that have no dedicated tool equivalent.
 
+## Claims and Recommendations
+- Before saying something is unused or safe to remove (keys, tokens, drives, branches, files), show what was checked: the command and its output. No evidence, no claim.
+- Every recommendation says what was verified (files read, docs, commands run) versus assumed. Check this file, the project's rules and memory for a stated preference before proposing a generic best practice.
+
 ## Devil's Advocate
 Auto-trigger light mode before finalizing any recommendation involving: architectural decisions, irreversible changes, significant investment (user-stated or estimated >1 day — err toward triggering when unknown), go/no-go calls, or unverified assumptions.
 
@@ -48,7 +52,9 @@ Everything committed to a public repo is published on push, commit messages incl
 
 ## Environment
 - Host is Bazzite (immutable Fedora Atomic). Build GUI/desktop apps inside the `arch-dev` distrobox, not on the host.
-- Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`.
+- Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`. Use absolute paths in it and in any script it runs: under `sudo`, `$HOME` and `~` inside a script resolve to `/root`.
+- Gradle: never run `./gradlew --stop` while more than one worktree may be building; it stops every daemon of that Gradle version, killing the other worktrees' builds. To get a clean daemon for one build, use `--no-daemon`.
+- Sessions run in herdr, usually started with my `ccd` alias (`claude --dangerously-skip-permissions --rc`). When starting another Claude session (new tab or pane), give it this session's launch flags so it keeps the same permissions: read them with `tr '\0' ' ' < /proc/$PPID/cmdline` from a Bash call (its parent is this session's `claude`), then `herdr agent start <name> --kind claude --pane <id> -- <flags>`. A bare `claude` falls back to `defaultMode` and loses them.
 - Prefer user-level systemd units (`systemctl --user`) over system services.
 - Android emulator: run with `-gpu host`. The software renderers (swiftshader, `-gpu guest`) segfault here.
 - GUI apps launched for checks never go on the real desktop (it may be in use, e.g. gaming). Run them inside `arch-dev` on a virtual display: `Xvfb :99 -screen 0 1440x900x24 &`, then `DISPLAY=:99 WAYLAND_DISPLAY= <app>`; drive with `DISPLAY=:99 xdotool`, screenshot with `DISPLAY=:99 import -window root shot.png`. Android emulators run with `-no-window`.
@@ -56,3 +62,5 @@ Everything committed to a public repo is published on push, commit messages incl
 
 ## Safety Posture
 Confirm before: destructive operations (delete, force-push, drop table), hard-to-reverse operations (amend published commits, remove packages), actions visible to others (push, PR creation, messages). When in doubt, ask.
+
+A PreToolUse hook (`~/.claude/hooks/block-dangerous-git.sh`) blocks force-push, `reset --hard`, forced branch deletes and similar by matching the Bash command text, quoted text included. When a commit message mentions a guarded command, write the message to a file and `git commit -F <file>`; write file content that mentions one with Edit/Write, not a heredoc. Never reword a real command to get past the hook; ask instead.
