@@ -17,6 +17,20 @@ if [ "$(git config --bool privacy.public 2>/dev/null || true)" = true ]; then
   esac
 fi
 
+# Every repo, public or not: scan staged changes for secrets before they
+# enter history, where removing one means a rewrite. Missing gitleaks warns
+# rather than blocks, so a container without it can still commit.
+if [ "$hook" = pre-commit ]; then
+  if command -v gitleaks > /dev/null 2>&1; then
+    gitleaks git --pre-commit --staged --no-banner --redact --log-level warn . || {
+      echo "gitleaks: possible secret in staged changes (fix it; never --no-verify)" >&2
+      exit 1
+    }
+  else
+    echo "gitleaks not installed: staged changes were not scanned for secrets" >&2
+  fi
+fi
+
 # Hooks such as reference-transaction also fire during `git init` and
 # `git clone`, before the repository resolves; never fail those.
 common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || exit 0
