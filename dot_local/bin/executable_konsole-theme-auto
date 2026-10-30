@@ -27,9 +27,18 @@
 
 set -euo pipefail
 
-# Arvada, CO. Override per-machine with KONSOLE_THEME_LAT / _LON.
-LAT="${KONSOLE_THEME_LAT:-39.8028}"
-LON="${KONSOLE_THEME_LON:--105.0875}"
+# Location comes from a local-only file, never this repo:
+#   ~/.config/konsole-theme-auto/location   with   LAT=<deg>  LON=<deg>
+# KONSOLE_THEME_LAT / _LON in the environment override it.
+loc="${XDG_CONFIG_HOME:-$HOME/.config}/konsole-theme-auto/location"
+# shellcheck source=/dev/null
+[ -f "$loc" ] && . "$loc"
+LAT="${KONSOLE_THEME_LAT:-${LAT:-}}"
+LON="${KONSOLE_THEME_LON:-${LON:-}}"
+if [ -z "$LAT" ] || [ -z "$LON" ]; then
+  echo "konsole-theme-auto: no location; write LAT= and LON= to $loc" >&2
+  exit 1
+fi
 
 # Colour schemes are vendored from upstream and keep upstream's filenames;
 # the profiles wrapping them are ours, hence the two sets of names.

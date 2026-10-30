@@ -7,7 +7,7 @@
 - Github-flavored markdown
 
 ## Memory
-Persistent notes live in `~/.claude/projects/-var-home-fuzzyfission/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
+Persistent notes live in `~/.claude/projects/-var-home-<user>/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
 
 ## Skill Invocation
 Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`. They are explicit-use only: load one when I name it, or when a workflow I invoked calls it, never because a request resembles its domain. A workflow's rules end at its handoff; later requests don't inherit them. For plugin skills, check before acting and invoke one that applies. Announce which skill is being used before proceeding.
