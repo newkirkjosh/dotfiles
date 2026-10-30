@@ -58,6 +58,7 @@ Everything committed to a public repo is published on push, commit messages incl
 - Prefer user-level systemd units (`systemctl --user`) over system services.
 - Android emulator: run with `-gpu host`. The software renderers (swiftshader, `-gpu guest`) segfault here.
 - GUI apps launched for checks never go on the real desktop (it may be in use, e.g. gaming). Run them inside `arch-dev` on a virtual display: `Xvfb :99 -screen 0 1440x900x24 &`, then `DISPLAY=:99 WAYLAND_DISPLAY= <app>`; drive with `DISPLAY=:99 xdotool`, screenshot with `DISPLAY=:99 import -window root shot.png`. Android emulators run with `-no-window`.
+- herdr spells the `team` skill's session operations (check `test "${HERDR_ENV:-}" = 1` first; never run bare `herdr`, it opens the TUI): **Open** `herdr tab create --cwd <repo> --label <name> --no-focus`, pane ID under `.result.root_pane`; **Start** as above; **Prompt** `herdr agent prompt <name> "<text>" --wait --until working --timeout 60000`; **Wait** `herdr agent wait <name> --until idle --until done --until blocked --timeout 600000`; **Read** `herdr agent read <name> --lines 40`.
 - Browsers are Flatpaks and can't read hidden dirs like `~/.claude`; copy files to `~/Downloads` before opening them.
 
 ## Safety Posture
