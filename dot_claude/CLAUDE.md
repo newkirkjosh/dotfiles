@@ -27,6 +27,9 @@ Reserve Bash for operations that have no dedicated tool equivalent.
 - Before saying something is unused or safe to remove (keys, tokens, drives, branches, files), show what was checked: the command and its output. No evidence, no claim.
 - Every recommendation says what was verified (files read, docs, commands run) versus assumed. Check this file, the project's rules and memory for a stated preference before proposing a generic best practice.
 
+## Background Agents
+Check on any agent or session you start within about 10 minutes, and again at a similar interval while it runs: look for new commits, running processes or output, not just whether it's alive. If nothing moved, ask it once for status; if it stays quiet, stop it and take the work back. An idle agent looks the same as a busy one from the outside, and I shouldn't be the one to notice.
+
 ## Devil's Advocate
 Auto-trigger light mode before finalizing any recommendation involving: architectural decisions, irreversible changes, significant investment (user-stated or estimated >1 day — err toward triggering when unknown), go/no-go calls, or unverified assumptions.
 
@@ -55,10 +58,11 @@ Everything committed to a public repo is published on push, commit messages incl
 - Claude cannot run `sudo`. When root is needed, give the exact command for me to run with `! <command>`. Use absolute paths in it and in any script it runs: under `sudo`, `$HOME` and `~` inside a script resolve to `/root`.
 - Gradle: never run `./gradlew --stop` while more than one worktree may be building; it stops every daemon of that Gradle version, killing the other worktrees' builds. To get a clean daemon for one build, use `--no-daemon`.
 - Sessions run in herdr, usually started with my `ccd` alias (`claude --dangerously-skip-permissions --rc`). When starting another Claude session (new tab or pane), give it this session's launch flags so it keeps the same permissions: read them with `tr '\0' ' ' < /proc/$PPID/cmdline` from a Bash call (its parent is this session's `claude`), then `herdr agent start <name> --kind claude --pane <id> -- <flags>`. A bare `claude` falls back to `defaultMode` and loses them.
+- herdr spells the `team` skill's session operations (check `test "${HERDR_ENV:-}" = 1` first; never run bare `herdr`, it opens the TUI): **Open** `herdr tab create --cwd <repo> --label <name> --no-focus`, pane ID under `.result.root_pane`; **Start** as above; **Prompt** `herdr agent prompt <name> "<text>" --wait --until working --timeout 60000`; **Wait** `herdr agent wait <name> --until idle --until done --until blocked --timeout 600000`; **Read** `herdr agent read <name> --lines 40`.
 - Prefer user-level systemd units (`systemctl --user`) over system services.
 - Android emulator: run with `-gpu host`. The software renderers (swiftshader, `-gpu guest`) segfault here.
+- A physical Android device can't reach a dev server at an emulator-only address (`10.0.2.2`). Before offering or using one for checks, confirm the app's server URL works from it (`adb reverse` plus a URL the build can point at); otherwise use the emulator, and say why.
 - GUI apps launched for checks never go on the real desktop (it may be in use, e.g. gaming). Run them inside `arch-dev` on a virtual display: `Xvfb :99 -screen 0 1440x900x24 &`, then `DISPLAY=:99 WAYLAND_DISPLAY= <app>`; drive with `DISPLAY=:99 xdotool`, screenshot with `DISPLAY=:99 import -window root shot.png`. Android emulators run with `-no-window`.
-- herdr spells the `team` skill's session operations (check `test "${HERDR_ENV:-}" = 1` first; never run bare `herdr`, it opens the TUI): **Open** `herdr tab create --cwd <repo> --label <name> --no-focus`, pane ID under `.result.root_pane`; **Start** as above; **Prompt** `herdr agent prompt <name> "<text>" --wait --until working --timeout 60000`; **Wait** `herdr agent wait <name> --until idle --until done --until blocked --timeout 600000`; **Read** `herdr agent read <name> --lines 40`.
 - Browsers are Flatpaks and can't read hidden dirs like `~/.claude`; copy files to `~/Downloads` before opening them.
 
 ## Safety Posture
