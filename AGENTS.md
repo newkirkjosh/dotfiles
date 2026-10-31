@@ -83,6 +83,22 @@ Managed settings live in `.chezmoidata/claude.yaml` under two keys:
 
 The root `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, `README.md`, `docs/`, `install.sh`, `.github/**`, and `test/**` are all chezmoi-ignored — they live in the repo but are never applied to `$HOME`. A new root doc needs its own line in `.chezmoiignore`, or the next apply copies it into `$HOME`. The root ignores match the root target only, so they do **not** catch `dot_claude/CLAUDE.md`, which *is* applied to `~/.claude/CLAUDE.md` as the global Claude instructions.
 
+## Tracker
+
+GitHub issues on this repository.
+
+## Layers
+
+None: a change here is one PR, not a layered `dev` run.
+
+## Pull requests
+
+Conventional-commit titles. Labels: one of `enhancement`, `bug` or `documentation`. No project board. Squash merge only.
+
+## Merge policy
+
+An agent may squash-merge its own PR when every gate holds on the PR's head commit, re-checked right before merging: CI green, the Codex cross-review converged, every CodeRabbit comment fixed or answered, and no unresolved review thread. Hand the merge back to the user instead when the PR touches a guard or a secret path: `dot_config/git/hooks/` (privacy and secret scans), `dot_claude/hooks/` (the dangerous-git guard), `dot_local/bin/executable_secret` (the keyring helper), or `.github/workflows/`.
+
 ## Code Review Rules
 
 Read `REVIEW.md` at the repository root and apply it in full as the review rules for this repo. This section exists for Codex, which reads `AGENTS.md` but not `REVIEW.md`.
