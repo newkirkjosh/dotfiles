@@ -7,3 +7,4 @@ Parent=FALLBACK/
 
 [Appearance]
 ColorScheme=rose-pine-moon
+Font=Fira Code,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0
