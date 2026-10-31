@@ -2,5 +2,6 @@
 # and arch-dev, which mount the same home directory.
 
 # Worktrees live inside each repository, in a gitignored .worktrees/ folder,
-# named after the branch. Repositories must ignore .worktrees/.
+# named after the branch. The global git ignore (~/.config/git/ignore) ignores
+# .worktrees/ in every repository.
 worktree-path = "{{ repo_path }}/.worktrees/{{ branch | sanitize }}"

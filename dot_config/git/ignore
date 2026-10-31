@@ -1,0 +1,6 @@
+# Global git ignore (git reads ~/.config/git/ignore when core.excludesFile is unset).
+
+# worktrunk keeps each repository's worktrees in <repo>/.worktrees/ (see
+# ~/.config/worktrunk/config.toml); ignoring them here covers every repository,
+# so a nested worktree never shows as untracked or gets swept into a commit.
+.worktrees/
