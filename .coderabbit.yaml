@@ -1,5 +1,6 @@
-# CodeRabbit configuration (free on public repositories). CLAUDE.md holds
-# this repo's conventions and is read by default as a code guideline.
+# CodeRabbit configuration (free on public repositories). AGENTS.md holds
+# this repo's conventions and is read by default as a code guideline;
+# REVIEW.md holds its review rules and isn't in the default patterns.
 language: en-US
 reviews:
   profile: chill
@@ -9,3 +10,8 @@ reviews:
   path_instructions:
     - path: "**"
       instructions: "This repo is public. Flag credentials, tokens, keys, personal details, private repo or project names and internal URLs. Secrets come from 1Password at apply time, never from committed files."
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/REVIEW.md"

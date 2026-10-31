@@ -1,6 +1,8 @@
 # Files in this repo that are NOT applied to the home directory.
 README.md
+AGENTS.md
 CLAUDE.md
+REVIEW.md
 docs/**
 install.sh
 .github/**
