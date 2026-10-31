@@ -113,4 +113,4 @@ Sign commits via 1Password's SSH agent. From the arch-dev distrobox use `git -c 
 - Anything Arch-native that won't be inside the container — there is no Arch host
 - Credentials, SSH keys, tokens — 1Password or `~/.secrets` (git-ignored) only
 
-This clone deliberately leaves `privacy.public` unset: the local private-terms list includes this repo's own machine-setup terms, so the global commit hook would block every commit. Check each diff against `REVIEW.md`'s privacy rule by hand; gitleaks still runs on every commit and in CI.
+This clone deliberately leaves `privacy.public` unset: the local private-terms list includes this repo's own machine-setup terms, so the global commit hook would block every commit. Check each diff against `REVIEW.md`'s privacy rule by hand. gitleaks runs on every commit where it is installed (the hook warns and lets a commit through when it is missing, so run `gitleaks git --staged` yourself before pushing from such a machine), and in CI on every push and PR.
