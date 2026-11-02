@@ -17,11 +17,12 @@ TOOLS=(
 )
 
 # The executable go install writes: the last path element, or the one before
-# a major-version suffix (example.com/tool/v2 installs "tool").
+# a major-version suffix of v2 or higher (example.com/tool/v2 installs "tool";
+# /v0 and /v1 are kept as the name).
 bin_name() {
     local path="${1%@*}" name
     name="${path##*/}"
-    if [[ "$name" =~ ^v[0-9]+$ && "$path" == */*/* ]]; then
+    if [[ "$name" =~ ^v([2-9]|[1-9][0-9]+)$ && "$path" == */*/* ]]; then
         path="${path%/*}"
         name="${path##*/}"
     fi

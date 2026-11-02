@@ -21,7 +21,7 @@ case "$1" in
   env) echo "${SAVED_GOPRIVATE:-}" ;;
   install)
     case "$2" in *broken*) exit 1 ;; esac
-    p="${2%@*}"; n="${p##*/}"; [[ "$n" =~ ^v[0-9]+$ ]] && { p="${p%/*}"; n="${p##*/}"; }
+    p="${2%@*}"; n="${p##*/}"; [[ "$n" =~ ^v([2-9]|[1-9][0-9]+)$ ]] && { p="${p%/*}"; n="${p##*/}"; }
     touch "$GOBIN/$n"; chmod +x "$GOBIN/$n" ;;
 esac
 STUB
@@ -35,6 +35,10 @@ esac
 STUB
 chmod +x "$work/bin/go" "$work/bin/distrobox"
 export STUB_LOG="$work/go.log"
+# Only the system commands the script needs, so a Go or mise installed on the
+# machine running the tests can't stand in for the stubs.
+mkdir -p "$work/sys"
+for c in bash env mkdir awk grep cat touch chmod; do ln -s "$(command -v "$c")" "$work/sys/$c"; done
 
 # render TOOL...: the script for these tools.
 render() {
@@ -43,7 +47,7 @@ render() {
     chezmoi execute-template --source "$root" --override-data "{\"go_tools\":[${json%,}]}" < "$tmpl" > "$work/script.sh"
 }
 # run [PATH]: run the rendered script with a temporary HOME.
-run() { : > "$STUB_LOG"; out=$(HOME="$work/home" PATH="${1:-$work/bin}:/usr/bin:/bin" bash "$work/script.sh" 2>&1); rc=$?; }
+run() { : > "$STUB_LOG"; out=$(HOME="$work/home" PATH="${1:-$work/bin}:$work/sys" bash "$work/script.sh" 2>&1); rc=$?; }
 
 render "example.com/owner/tool/cmd/tool@latest" "example.com/owner/other/v2@latest" "github.com/newkirkjosh/private/cmd/private@latest"
 SAVED_GOPRIVATE="corp.example.com/*" run
@@ -60,6 +64,11 @@ check "present tools are skipped (no go call)" '[ ! -s "$STUB_LOG" ] && [ "$rc" 
 rm "$work/home/.local/bin/other"
 run
 check "a /vN module is found by its real name" '[ "$(grep -c "go install" "$STUB_LOG")" -eq 1 ] && grep -q "go install example.com/owner/other/v2@latest" "$STUB_LOG"'
+
+render "example.com/owner/old/v1@latest"
+run
+run
+check "a /v1 module keeps v1 as its name"      '[ -x "$work/home/.local/bin/v1" ] && [ ! -s "$STUB_LOG" ]'
 
 render "example.com/owner/broken/cmd/broken@latest"
 run
