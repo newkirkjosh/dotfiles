@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Installs the Go CLIs listed in .go_tools that are missing from ~/.local/bin.
+# - Bazzite: builds inside the arch-dev distrobox, where mise provides Go.
+# - Arch: builds on the host.
+# Runs on every apply but only builds what's missing, so a tool skipped earlier
+# (no distrobox yet, Go not installed, SSH agent locked) is retried next time.
+# To update a tool, delete it from ~/.local/bin and run `chezmoi apply`.
+# Private modules under github.com/newkirkjosh are fetched over SSH.
+
+set -euo pipefail
+
+TOOLS=(
+{{- range .go_tools }}
+    {{ . | quote }}
+{{- end }}
+)
+
+MISSING=()
+for tool in ${TOOLS[@]+"${TOOLS[@]}"}; do
+    bin="${tool%@*}"
+    bin="${bin##*/}"
+    [ -x "$HOME/.local/bin/$bin" ] || MISSING+=("$tool")
+done
+[ "${#MISSING[@]}" -eq 0 ] && exit 0
+
+# Static binaries, private modules kept off the public proxy (added to any
+# GOPRIVATE already set), and github.com HTTPS URLs rewritten to SSH.
+GO_ENV=(
+    CGO_ENABLED=0
+    "GOPRIVATE=${GOPRIVATE:+$GOPRIVATE,}github.com/newkirkjosh/*"
+    GIT_CONFIG_COUNT=1
+    GIT_CONFIG_KEY_0=url.git@github.com:.insteadOf
+    GIT_CONFIG_VALUE_0=https://github.com/
+    # mise refuses untrusted config; see install-mise-tools for the Bazzite path quirk.
+    "MISE_TRUSTED_CONFIG_PATHS=$HOME/.config:/var/home/$USER/.config"
+)
+
+# Runs where Go lives. $HOME is resolved there: inside the container it can
+# differ from the host's. mise exec puts Go on PATH however the shell is set up.
+INSTALL='mkdir -p "$HOME/.local/bin" && export GOBIN="$HOME/.local/bin" &&
+if command -v mise >/dev/null 2>&1; then exec mise exec -- go install "$1"
+elif command -v go >/dev/null 2>&1; then exec go install "$1"
+else echo "no Go found" >&2; exit 1; fi'
+
+{{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
+CONTAINER="{{ .bazzite.distrobox.name }}"
+if ! command -v distrobox >/dev/null 2>&1 || ! distrobox list | awk '{print $3}' | grep -qx "$CONTAINER"; then
+    echo "⚠ distrobox '$CONTAINER' not found — skipping Go tools until the next apply"
+    exit 0
+fi
+run() { distrobox enter "$CONTAINER" -- env "${GO_ENV[@]}" bash -c "$INSTALL" _ "$1"; }
+{{ else -}}
+run() { env "${GO_ENV[@]}" bash -c "$INSTALL" _ "$1"; }
+{{ end -}}
+
+for tool in "${MISSING[@]}"; do
+    echo "→ go install $tool"
+    run "$tool" || echo "⚠ could not install $tool (no Go, or no SSH access) — will retry on the next apply"
+done

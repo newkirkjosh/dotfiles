@@ -1,10 +1,10 @@
 # Go CLIs built from source with `go install`, consumed by
-# run_onchange_after_install-go-tools.sh.tmpl. Scripts reference this as .go_tools.
+# run_after_install-go-tools.sh.tmpl. Scripts reference this as .go_tools.
 #
 # Each lands in ~/.local/bin as a static binary (CGO_ENABLED=0), so the host and
 # the arch-dev distrobox, which share the home directory, run the same one.
-# Re-run `chezmoi apply` after editing; to update an @latest tool, run the
-# script's go install line again by hand.
+# `chezmoi apply` installs any that are missing; to update one, delete it from
+# ~/.local/bin and apply again.
 #
 # This repository is public: list private tools in the local
 # ~/.config/chezmoi/chezmoi.toml instead, which overrides this list:
