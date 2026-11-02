@@ -70,6 +70,11 @@ run
 run
 check "a /v1 module keeps v1 as its name"      '[ -x "$work/home/.local/bin/v1" ] && [ ! -s "$STUB_LOG" ]'
 
+render "example.com/v3@latest"
+run
+run
+check "a one-slash /vN path names the parent"  '[ -x "$work/home/.local/bin/example.com" ] && [ ! -s "$STUB_LOG" ]'
+
 render "example.com/owner/broken/cmd/broken@latest"
 run
 check "a failed install warns and exits 0"     '[ "$rc" -eq 0 ] && grep -q "will retry" <<<"$out"'
