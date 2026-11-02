@@ -5,7 +5,8 @@
 # Runs on every apply but only builds what's missing, so a tool skipped earlier
 # (no distrobox yet, Go not installed, SSH agent locked) is retried next time.
 # To update a tool, delete it from ~/.local/bin and run `chezmoi apply`.
-# Private modules under github.com/newkirkjosh are fetched over SSH.
+# Modules under github.com/newkirkjosh are private: fetched over SSH, never
+# through the public proxy. Tested by test/go-tools.sh.
 
 set -euo pipefail
 
@@ -15,32 +16,45 @@ TOOLS=(
 {{- end }}
 )
 
+# The executable go install writes: the last path element, or the one before
+# a major-version suffix (example.com/tool/v2 installs "tool").
+bin_name() {
+    local path="${1%@*}" name
+    name="${path##*/}"
+    if [[ "$name" =~ ^v[0-9]+$ && "$path" == */*/* ]]; then
+        path="${path%/*}"
+        name="${path##*/}"
+    fi
+    echo "$name"
+}
+
 MISSING=()
 for tool in ${TOOLS[@]+"${TOOLS[@]}"}; do
-    bin="${tool%@*}"
-    bin="${bin##*/}"
-    [ -x "$HOME/.local/bin/$bin" ] || MISSING+=("$tool")
+    [ -x "$HOME/.local/bin/$(bin_name "$tool")" ] || MISSING+=("$tool")
 done
 [ "${#MISSING[@]}" -eq 0 ] && exit 0
 
-# Static binaries, private modules kept off the public proxy (added to any
-# GOPRIVATE already set), and github.com HTTPS URLs rewritten to SSH.
+# Static binaries, and only the owner's GitHub URLs rewritten to SSH.
 GO_ENV=(
     CGO_ENABLED=0
-    "GOPRIVATE=${GOPRIVATE:+$GOPRIVATE,}github.com/newkirkjosh/*"
     GIT_CONFIG_COUNT=1
-    GIT_CONFIG_KEY_0=url.git@github.com:.insteadOf
-    GIT_CONFIG_VALUE_0=https://github.com/
+    GIT_CONFIG_KEY_0=url.git@github.com:newkirkjosh/.insteadOf
+    GIT_CONFIG_VALUE_0=https://github.com/newkirkjosh/
     # mise refuses untrusted config; see install-mise-tools for the Bazzite path quirk.
     "MISE_TRUSTED_CONFIG_PATHS=$HOME/.config:/var/home/$USER/.config"
 )
 
 # Runs where Go lives. $HOME is resolved there: inside the container it can
 # differ from the host's. mise exec puts Go on PATH however the shell is set up.
-INSTALL='mkdir -p "$HOME/.local/bin" && export GOBIN="$HOME/.local/bin" &&
-if command -v mise >/dev/null 2>&1; then exec mise exec -- go install "$1"
-elif command -v go >/dev/null 2>&1; then exec go install "$1"
-else echo "no Go found" >&2; exit 1; fi'
+# GOPRIVATE keeps whatever that Go already has (environment or go env -w).
+INSTALL='set -e
+mkdir -p "$HOME/.local/bin"
+export GOBIN="$HOME/.local/bin"
+if command -v mise >/dev/null 2>&1; then go() { mise exec -- go "$@"; }
+elif ! command -v go >/dev/null 2>&1; then echo "no Go found" >&2; exit 1; fi
+private=$(go env GOPRIVATE)
+export GOPRIVATE="${private:+$private,}github.com/newkirkjosh/*"
+go install "$1"'
 
 {{ if eq .chezmoi.osRelease.id "bazzite" "fedora" -}}
 CONTAINER="{{ .bazzite.distrobox.name }}"

@@ -58,6 +58,9 @@ jobs:
       - name: Test the global git hook's secret scan
         run: bash test/git-hooks.sh
 
+      - name: Test the Go tools installer
+        run: bash test/go-tools.sh
+
   secrets:
     name: Scan full history for secrets
     runs-on: ubuntu-latest
