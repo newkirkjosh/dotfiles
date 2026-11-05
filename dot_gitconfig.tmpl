@@ -45,7 +45,7 @@
        arch-dev distrobox, only the host's paths (under /run/host) are checked,
        since ~/.gitconfig is shared with the host. */}}
 {{- $root := "" }}
-{{- if stat "/run/host" }}{{ $root = "/run/host" }}{{ end }}
+{{- if stat "/run/host/usr" }}{{ $root = "/run/host" }}{{ end }}
 {{- $opSshSign := "/opt/1Password/op-ssh-sign" }}
 {{- range list "/opt/1Password/op-ssh-sign" "/usr/lib/opt/1Password/op-ssh-sign" "/usr/libexec/op-ssh-sign" "/usr/share/1password/op-ssh-sign" | reverse }}
 {{-   if stat (print $root .) }}{{ $opSshSign = . }}{{ end }}
