@@ -112,7 +112,7 @@ Sign commits via 1Password's SSH agent. From the arch-dev distrobox use `git -c 
 - `/usr/bin` is read-only — never assume a host path that requires writing there
 - `$HOME` is `/home/$USER` but mise + some tools resolve via `/var/home/$USER`; trust both prefixes (see `MISE_TRUSTED_CONFIG_PATHS` in `dot_zshrc.tmpl`)
 - `gh` lives in brew, not `/usr/bin/gh` — gitconfig credential helpers are gated off on Bazzite; SSH remotes via 1Password agent are the auth path
-- `op-ssh-sign`'s path follows the 1Password package's layout, which has changed across updates: the upstream rpm installs `/opt/1Password/op-ssh-sign` (on Bazzite `/opt` resolves to `/usr/lib/opt`), while an earlier repackaged rpm used `/usr/libexec/op-ssh-sign`. The gitconfig template picks the first that exists at apply time, so re-run `chezmoi apply ~/.gitconfig` if signing breaks after an image update.
+- `op-ssh-sign`'s path follows the 1Password package's layout, which has changed across updates: the upstream rpm installs `/opt/1Password/op-ssh-sign` (on Bazzite `/opt` resolves to `/usr/lib/opt`), while an earlier repackaged rpm used `/usr/libexec/op-ssh-sign`. The gitconfig template picks the first that exists at apply time, checking each under `/run/host` too so an apply from the distrobox resolves the host's signer; re-run `chezmoi apply ~/.gitconfig` if signing breaks after an image update.
 - When running chezmoi from inside the arch-dev distrobox, the host filesystem is at `/run/host/` — so `op-ssh-sign` is `/run/host/usr/lib/opt/1Password/op-ssh-sign` from that context.
 
 ## Adding a package

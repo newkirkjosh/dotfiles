@@ -41,10 +41,12 @@
        distro: the upstream rpm and the Arch package install to /opt/1Password
        (on Bazzite /opt resolves to /usr/lib/opt), while a repackaged rpm put
        it in /usr/share/1password with a /usr/libexec link. Use the first that
-       exists at apply time; fall back to the upstream path. */}}
+       exists at apply time; fall back to the upstream path. Each path is also
+       checked under /run/host, so an apply from inside the arch-dev distrobox
+       still picks the host's signer for the shared ~/.gitconfig. */}}
 {{- $opSshSign := "/opt/1Password/op-ssh-sign" }}
 {{- range list "/opt/1Password/op-ssh-sign" "/usr/lib/opt/1Password/op-ssh-sign" "/usr/libexec/op-ssh-sign" "/usr/share/1password/op-ssh-sign" | reverse }}
-{{-   if stat . }}{{ $opSshSign = . }}{{ end }}
+{{-   if or (stat (print "/run/host" .)) (stat .) }}{{ $opSshSign = . }}{{ end }}
 {{- end }}
     program = "{{ $opSshSign }}"
     allowedSignersFile = "~/.config/git/allowed_signers"
