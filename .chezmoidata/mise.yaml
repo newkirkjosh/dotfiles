@@ -1,4 +1,4 @@
-# mise language runtime list, consumed by run_onchange_after_install-mise-tools.sh.tmpl.
+# mise language runtime list, consumed by run_onchange_after_01-install-mise-tools.sh.tmpl.
 # Chezmoi merges all .yaml files in .chezmoidata/ — scripts reference this as .mise.
 #
 # On Bazzite: runtimes are installed inside the arch-dev distrobox.

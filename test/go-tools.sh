@@ -40,10 +40,22 @@ export STUB_LOG="$work/go.log"
 mkdir -p "$work/sys"
 for c in bash env mkdir awk grep cat touch chmod; do ln -s "$(command -v "$c")" "$work/sys/$c"; done
 
-# render TOOL...: the script for these tools.
+# mise stub: logs the call, then runs `exec -- go ...` with the go stub, which
+# is deliberately not on PATH in the mise scenario.
+cat > "$work/mise" <<'STUB'
+#!/usr/bin/env bash
+echo "mise $* TRUSTED=${MISE_TRUSTED_CONFIG_PATHS:-}" >> "$STUB_LOG"
+[ "$1 $2 $3" = "exec -- go" ] || exit 1
+shift 3
+exec "$GO_STUB" "$@"
+STUB
+chmod +x "$work/mise"
+export GO_STUB="$work/bin/go"
+
+# render [TOOL...]: the script for these tools; none renders an empty list.
 render() {
-    local json
-    json=$(printf '"%s",' "$@")
+    local json=
+    (($#)) && json=$(printf '"%s",' "$@")
     chezmoi execute-template --source "$root" --override-data "{\"go_tools\":[${json%,}]}" < "$tmpl" > "$work/script.sh"
 }
 # run [PATH]: run the rendered script with a temporary HOME.
@@ -85,9 +97,18 @@ mkdir -p "$work/nogo" && cp "$work/bin/distrobox" "$work/nogo/"
 run "$work/nogo"
 check "no Go warns and exits 0"                '[ "$rc" -eq 0 ] && grep -q "no Go found" <<<"$out"'
 
+# No ~/.local/bin left over from earlier cases, so an empty name can't match it.
+rm -rf "$work/home/.local/bin"
 render
 run
-check "an empty list does nothing"             '[ "$rc" -eq 0 ] && [ -z "$out" ] && [ ! -s "$STUB_LOG" ]'
+check "an empty list does nothing"             '[ "$rc" -eq 0 ] && [ -z "$out" ] && [ ! -s "$STUB_LOG" ] && [ ! -e "$work/home/.local/bin" ]'
+
+mkdir -p "$work/withmise" && cp "$work/bin/distrobox" "$work/mise" "$work/withmise/"
+render "example.com/owner/tool/cmd/tool@latest"
+SAVED_GOPRIVATE="corp.example.com/*" run "$work/withmise"
+check "Go runs through mise exec when present" '[ "$rc" -eq 0 ] && [ -x "$work/home/.local/bin/tool" ] && grep -q "^mise exec -- go install example.com/owner/tool/cmd/tool@latest" "$STUB_LOG"'
+check "mise gets the trusted config paths"     'grep -q "^mise exec .*TRUSTED=$work/home/.config:/var/home/$USER/.config" "$STUB_LOG"'
+check "GOPRIVATE is merged under mise too"     'grep -q "^go install .*GOPRIVATE=corp.example.com/\*,github.com/newkirkjosh/\*" "$STUB_LOG"'
 
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

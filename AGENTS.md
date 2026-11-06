@@ -61,6 +61,8 @@ Use the verb that matches the action:
 | `configure` | Configuring existing system features (firewall, display, etc.) |
 | `update` | Non-destructively merging managed config into an existing file |
 
+chezmoi runs the scripts of a phase in alphabetical order of their target name (the name without `run_`, `onchange_`, `after_`), so `install-*` runs before `setup-*`. A script that others need first takes a two-digit prefix, which sorts before any letter: `00-setup-distrobox` creates `arch-dev`, then `01-install-mise-tools` provides the runtimes that the container scripts after it use. Without the prefix, a first `chezmoi init --apply` runs them before the container exists, they skip, and a `run_onchange_` script that skipped is not run again until its content changes. Renaming a `run_onchange_` script runs it again on the next apply.
+
 ### chezmoidata
 
 Data lives in `.chezmoidata/*.yaml`. Chezmoi merges all files in that directory — keys are top-level so splitting files is transparent to scripts. Add new domains as new files rather than growing existing ones.
