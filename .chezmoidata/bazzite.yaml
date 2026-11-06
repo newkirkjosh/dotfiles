@@ -142,7 +142,7 @@ bazzite:
       - ghostty
 
     # npm globals installed inside the container after mise provisions node.
-    # Install ordering: setup-distrobox → install-mise-tools (node) → install-npm-globals.
+    # Install ordering: 00-setup-distrobox → 01-install-mise-tools (node) → install-npm-globals.
     npm_globals: []
 
     # Curl-based installers run inside the container. Each entry is run once
