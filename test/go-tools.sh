@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Tests for .chezmoiscripts/run_after_install-go-tools.sh.tmpl, rendered with a
-# test tool list, against stub go, mise and distrobox. No network, no real Go.
+# test tool list and OS, against stub go, mise and distrobox. No network, no
+# real Go.
 # usage: bash test/go-tools.sh
 set -uo pipefail
 
@@ -16,7 +17,7 @@ mkdir -p "$work/bin" "$work/home"
 # into GOBIN unless the module path contains "broken".
 cat > "$work/bin/go" <<'STUB'
 #!/usr/bin/env bash
-echo "go $* GOBIN=${GOBIN:-} GOPRIVATE=${GOPRIVATE:-} CGO=${CGO_ENABLED:-} GIT=${GIT_CONFIG_KEY_0:-}=${GIT_CONFIG_VALUE_0:-}" >> "$STUB_LOG"
+echo "go $* GOBIN=${GOBIN:-} GOPRIVATE=${GOPRIVATE:-} CGO=${CGO_ENABLED:-} BOX=${IN_BOX:-0} GIT=${GIT_CONFIG_KEY_0:-}=${GIT_CONFIG_VALUE_0:-}" >> "$STUB_LOG"
 case "$1" in
   env) echo "${SAVED_GOPRIVATE:-}" ;;
   install)
@@ -25,12 +26,14 @@ case "$1" in
     touch "$GOBIN/$n"; chmod +x "$GOBIN/$n" ;;
 esac
 STUB
-# distrobox stub (Bazzite rendering): lists the container, runs `enter -- cmd`.
+# distrobox stub (Bazzite rendering): lists the container unless NO_BOX is set;
+# `enter NAME -- cmd` logs the call and runs cmd with IN_BOX=1, so the go stub
+# can tell a build inside the container from one on the host.
 cat > "$work/bin/distrobox" <<'STUB'
 #!/usr/bin/env bash
 case "$1" in
-  list) echo "ID | NAME | STATUS"; echo "x | arch-dev | Up" ;;
-  enter) shift; while [ "$1" != "--" ]; do shift; done; shift; exec "$@" ;;
+  list) echo "ID | NAME | STATUS"; [ -n "${NO_BOX:-}" ] || echo "x | arch-dev | Up" ;;
+  enter) echo "distrobox enter $2" >> "$STUB_LOG"; shift; while [ "$1" != "--" ]; do shift; done; shift; IN_BOX=1 exec "$@" ;;
 esac
 STUB
 chmod +x "$work/bin/go" "$work/bin/distrobox"
@@ -53,10 +56,14 @@ chmod +x "$work/mise"
 export GO_STUB="$work/bin/go"
 
 # render [TOOL...]: the script for these tools; none renders an empty list.
+# OS picks the template branch (default bazzite, the distrobox one), so the
+# result doesn't depend on the machine running the tests.
 render() {
     local json=
     (($#)) && json=$(printf '"%s",' "$@")
-    chezmoi execute-template --source "$root" --override-data "{\"go_tools\":[${json%,}]}" < "$tmpl" > "$work/script.sh"
+    chezmoi execute-template --source "$root" \
+        --override-data "{\"go_tools\":[${json%,}],\"chezmoi\":{\"osRelease\":{\"id\":\"${OS:-bazzite}\"}}}" \
+        < "$tmpl" > "$work/script.sh"
 }
 # run [PATH]: run the rendered script with a temporary HOME.
 run() { : > "$STUB_LOG"; out=$(HOME="$work/home" PATH="${1:-$work/bin}:$work/sys" bash "$work/script.sh" 2>&1); rc=$?; }
@@ -65,6 +72,7 @@ render "example.com/owner/tool/cmd/tool@latest" "example.com/owner/other/v2@late
 SAVED_GOPRIVATE="corp.example.com/*" run
 check "missing tools are installed"          '[ -x "$work/home/.local/bin/tool" ] && [ -x "$work/home/.local/bin/other" ] && [ -x "$work/home/.local/bin/private" ]'
 check "binaries go to ~/.local/bin"          'grep -q "GOBIN=$work/home/.local/bin" "$STUB_LOG"'
+check "Bazzite builds inside arch-dev"       'grep -q "^distrobox enter arch-dev" "$STUB_LOG" && ! grep "^go " "$STUB_LOG" | grep -qv "BOX=1"'
 check "static build"                         '! grep "go install" "$STUB_LOG" | grep -qv "CGO=0"'
 check "saved GOPRIVATE is kept and extended" 'grep -q "GOPRIVATE=corp.example.com/\*,github.com/newkirkjosh/\*" "$STUB_LOG"'
 check "SSH rewrite only for the owner"       'grep -q "GIT=url.git@github.com:newkirkjosh/.insteadOf=https://github.com/newkirkjosh/" "$STUB_LOG"'
@@ -109,6 +117,16 @@ SAVED_GOPRIVATE="corp.example.com/*" run "$work/withmise"
 check "Go runs through mise exec when present" '[ "$rc" -eq 0 ] && [ -x "$work/home/.local/bin/tool" ] && grep -q "^mise exec -- go install example.com/owner/tool/cmd/tool@latest" "$STUB_LOG"'
 check "mise gets the trusted config paths"     'grep -q "^mise exec .*TRUSTED=$work/home/.config:/var/home/$USER/.config" "$STUB_LOG"'
 check "GOPRIVATE is merged under mise too"     'grep -q "^go install .*GOPRIVATE=corp.example.com/\*,github.com/newkirkjosh/\*" "$STUB_LOG"'
+
+rm -rf "$work/home/.local/bin"
+render "example.com/owner/tool/cmd/tool@latest"
+NO_BOX=1 run
+check "no container warns, skips, exits 0"     '[ "$rc" -eq 0 ] && grep -q "not found" <<<"$out" && ! grep -q "^go " "$STUB_LOG" && [ ! -e "$work/home/.local/bin/tool" ]'
+
+mkdir -p "$work/hostgo" && cp "$work/bin/go" "$work/hostgo/"
+OS=arch render "example.com/owner/tool/cmd/tool@latest"
+run "$work/hostgo"
+check "other hosts build on the host"          '[ "$rc" -eq 0 ] && [ -x "$work/home/.local/bin/tool" ] && grep -q "^go install .*BOX=0" "$STUB_LOG" && ! grep -q "^distrobox" "$STUB_LOG"'
 
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]
