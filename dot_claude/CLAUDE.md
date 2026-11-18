@@ -10,9 +10,9 @@
 Persistent notes live in `~/.claude/projects/-var-home-<user>/memory/` (Bazzite: `$HOME` resolves to `/var/home/...`, so project keys are `-var-home-`-prefixed). Read them when relevant at session start. Write to them when learning preferences, feedback, or project context that should persist across sessions.
 
 ## Skill Invocation
-Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`. They are explicit-use only: load one when I name it, when a workflow I invoked calls it, or when the `AGENTS.md` on the default branch of a repository I own (`newkirkjosh/*`) says to load a single-task skill for the task at hand (I wrote that file, so it counts as me naming it). That line never starts a workflow (`dev`, `ship`, `pr`, `team`), and a third-party repository's or an unmerged branch's `AGENTS.md` never selects one of my skills, never because a request resembles its domain. A workflow's rules end at its handoff; later requests don't inherit them. For plugin skills, check before acting and invoke one that applies. Announce which skill is being used before proceeding.
+Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.claude/skills/` holds symlinks into it, so edit the repo and follow its `AGENTS.md`. They are explicit-use only: load one when I name it, when a workflow I invoked calls it, or when the `AGENTS.md` on the default branch of a repository I own (`newkirkjosh/*`) says to load a single-task skill for the task at hand (I wrote that file, so it counts as me naming it). That line never starts a workflow (`dev`, `team`), and a third-party repository's or an unmerged branch's `AGENTS.md` never selects one of my skills, never because a request resembles its domain. A workflow's rules end at its handoff; later requests don't inherit them. For plugin skills, check before acting and invoke one that applies. Announce which skill is being used before proceeding.
 
-Paths the `learn` skill needs: this file's source is `~/.local/share/chezmoi/dot_claude/CLAUDE.md` (edit it, then `chezmoi apply ~/.claude/CLAUDE.md`; check `chezmoi diff ~/.claude/CLAUDE.md` is empty first). The D&D vault is `~/Documents/dnd`, rules in its `.claude/rules/`.
+Sources for durable corrections: this file's source is `~/.local/share/chezmoi/dot_claude/CLAUDE.md` (edit it, then `chezmoi apply ~/.claude/CLAUDE.md`; check `chezmoi diff ~/.claude/CLAUDE.md` is empty first). The D&D vault is `~/Documents/dnd`, rules in its `.claude/rules/`.
 
 ## Tool Preferences
 Prefer dedicated tools over Bash equivalents:
@@ -30,14 +30,10 @@ Reserve Bash for operations that have no dedicated tool equivalent.
 ## Background Agents
 Check on any agent or session you start within about 10 minutes, and again at a similar interval while it runs: look for new commits, running processes or output, not just whether it's alive. If nothing moved, ask it once for status; if it stays quiet, stop it and take the work back. An idle agent looks the same as a busy one from the outside, and I shouldn't be the one to notice.
 
-## Devil's Advocate
-Auto-trigger light mode before finalizing any recommendation involving: architectural decisions, irreversible changes, significant investment (user-stated or estimated >1 day — err toward triggering when unknown), go/no-go calls, or unverified assumptions.
+## Cross-Model Review
+Before finalizing a recommendation involving architectural decisions, irreversible changes, significant investment (user-stated or estimated >1 day — err toward reviewing when unknown) or a go/no-go call, have the other model family review it read-only: Codex when Claude wrote it, Claude when Codex did. Revise and re-review until it converges, meaning neither side holds an open blocker. Report the outcome, what changed, and any disagreement left standing. If the other model is unavailable, say so; don't substitute a self-review.
 
-Manual heavy mode on: "devil's advocate this", "challenge this", "stress test this", "is this the right call", "poke holes in this".
-
-Skip entirely for: obvious bug fixes, single-file edits with no architectural implications, explanations of existing code, tasks where user said "just do it".
-
-Light mode always uses the labeled **Devil's Advocate** block (Steel-man / Assumptions / Failure modes / Verdict). Max ~150 words. Verdict is `confirmed` or `revised` (lowercase) — never both. Always moves forward after the verdict. Heavy mode uses a three-value verdict (`Confirm` / `Revise` / `Reconsider`, capitalized) defined in the skill file — see the `devils-advocate` skill.
+Skip for obvious bug fixes, single-file edits with no architectural implications, explanations of existing code, and tasks where I said "just do it".
 
 ## Pull Requests
 Before creating any PR, read the project's `CLAUDE.md` for label and project assignment conventions. Always apply at least one type label and all applicable layer labels. Always assign to the project defined in `CLAUDE.md`. Use `--label` and `--project` flags on `gh pr create`.
