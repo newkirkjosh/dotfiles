@@ -31,6 +31,7 @@ When in doubt, prefer the topmost layer that works. The immutable host stays cle
 | `.chezmoidata/claude.yaml` | Claude Code settings merged into `~/.claude/settings.json` on apply |
 | `.chezmoiscripts/` | `run_onchange_*` idempotent scripts — see naming conventions below |
 | `dot_claude/` | `~/.claude/` files (statusline script, etc.) |
+| `dot_codex/` | `~/.codex/AGENTS.md`, a symlink to `~/.claude/CLAUDE.md` so Codex reads the same global instructions |
 | `dot_config/` | `~/.config/` files (systemd user services, ghostty, git, tmux, starship) |
 | `dot_local/` | `~/.local/` files |
 | `dot_zshrc.tmpl` | `~/.zshrc`, shared host+container; guards (`command -v`) make it boot cleanly in both |
