@@ -14,6 +14,11 @@ Custom skills live in `~/Developer/skills` (repo `newkirkjosh/skills`); `~/.clau
 
 Sources for durable corrections: this file's source is `~/.local/share/chezmoi/dot_claude/CLAUDE.md` (edit it, then `chezmoi apply ~/.claude/CLAUDE.md`; check `chezmoi diff ~/.claude/CLAUDE.md` is empty first). The D&D vault is `~/Documents/dnd`, rules in its `.claude/rules/`.
 
+## Skill Learnings
+- The learning inbox for `learn note` and `learn review` is `~/Developer/docs/skill-learnings/inbox/` (private, outside every repository).
+- When I correct how one of my catalog skills behaved, write one lesson record there in the format of the `learn` skill's `references/inbox.md` (a direct file write; it doesn't load the skill), and say so in one line. Record only what the conversation shows; an unshown cause is `unestablished`.
+- Mention `/learn review` once, at the end of a reply, when the inbox holds 5 or more `open` or `applied` records or any of them is 14 or more days old, once per session. Never start a review yourself.
+
 ## Tool Preferences
 Prefer dedicated tools over Bash equivalents:
 - File search: Glob (not find/ls)
