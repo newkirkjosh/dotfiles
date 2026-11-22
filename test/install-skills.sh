@@ -48,9 +48,9 @@ esac
 EOF
 chmod +x "$tmp/bin/git" "$tmp/bin/gh"
 
-run() { # dir; prints exit code
+run() { # dir [output file]; prints exit code
     PATH="$tmp/bin:$PATH" SKILL_CATALOGS_DIR="$1" LOG="$1/log" \
-        bash "$tmp/install-skills.sh" > "$1.out" 2>&1
+        bash "$tmp/install-skills.sh" > "${2:-$1.out}" 2>&1
     echo $?
 }
 
@@ -68,5 +68,10 @@ rc="$(FAIL_INSTALL=skills run "$d")"
 check "a failed install exits non-zero" '[ "$rc" = 1 ]'
 check "later catalogs still install" '[ "$(tr "\n" " " < "$d/log")" = "dnd-skills unifi-skills " ]'
 check "the failure says how to recover" 'grep -q "install failed for: skills" "$d.out" && grep -q "pull --ff-only" "$d.out"'
+
+# A base directory that can't be created fails the run, so it is retried.
+: > "$tmp/not-a-dir"
+rc="$(run "$tmp/not-a-dir/sub" "$tmp/c.out")"
+check "an uncreatable base directory exits non-zero" '[ "$rc" = 1 ] && grep -q "could not create" "$tmp/c.out"'
 
 exit $fail
