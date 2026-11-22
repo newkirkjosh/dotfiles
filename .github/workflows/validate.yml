@@ -58,6 +58,9 @@ jobs:
       - name: Test the global git hook's secret scan
         run: bash test/git-hooks.sh
 
+      - name: Test the Claude settings merge
+        run: bash test/update-claude-settings.sh
+
       - name: Test the skill catalog installer
         run: bash test/install-skills.sh
 

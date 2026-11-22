@@ -76,9 +76,10 @@ For a device-conditional Flatpak, add an entry to `bazzite.device_packages` with
 
 ### Claude Code settings
 
-Managed settings live in `.chezmoidata/claude.yaml` under two keys:
+Managed settings live in `.chezmoidata/claude.yaml` under three keys:
 - `claude.settings` — merged into `~/.claude/settings.json` (our keys win on conflict)
 - `claude.marketplace` — merged alongside settings (marketplace registrations)
+- `claude.retired` — key paths deleted from `settings.json`. The merge only adds keys, so removing one from `claude.settings` leaves it on the machine; list its path here instead (`test/update-claude-settings.sh`)
 
 `run_onchange_after_update-claude-settings.sh.tmpl` handles the merge on every apply. User-added top-level keys in `settings.json` are preserved. The `~/.claude/statusline-command.sh` script is deployed from `dot_claude/executable_statusline-command.sh`.
 
