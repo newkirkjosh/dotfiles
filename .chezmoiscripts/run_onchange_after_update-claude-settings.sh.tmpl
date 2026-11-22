@@ -23,6 +23,7 @@ fi
 # not hard-coded into the source file.
 required_settings='{{ .claude.settings | toJson }}'
 marketplace_config='{{ .claude.marketplace | toJson }}'
+retired_paths='{{ .claude.retired | toJson }}'
 
 # Extract commandPath and rebuild statusLine with an absolute command string.
 command_path=$(echo "$required_settings" | jq -r '.statusLine.commandPath')
@@ -36,11 +37,13 @@ required_settings=$(echo "$required_settings" | jq \
     --argjson sl "$status_line_json" \
     'del(.statusLine.commandPath) | .statusLine = $sl')
 
-# Merge: existing keys are preserved; our managed keys win on conflict.
+# Merge: existing keys are preserved; our managed keys win on conflict; retired
+# keys are deleted (a parent they leave empty, such as env, stays as {}).
 result=$(echo "$existing" | jq \
     --argjson required "$required_settings" \
     --argjson marketplace "$marketplace_config" \
-    '. * $required * $marketplace')
+    --argjson retired "$retired_paths" \
+    '. * $required * $marketplace | delpaths($retired)')
 
 echo "$result" > "$SETTINGS_FILE"
 echo "✓ Updated $SETTINGS_FILE"

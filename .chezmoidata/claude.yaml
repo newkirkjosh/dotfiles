@@ -8,10 +8,15 @@ claude:
   # symlinked by run_onchange_after_install-skills.sh.tmpl.
   marketplace: {}
 
+  # Settings this repo used to manage and no longer wants. The merge only adds
+  # keys, so dropping one from `settings` leaves it in settings.json; list its
+  # path here and the merge deletes it. Agent teams: the team skill runs dev
+  # workers as plain subagents, so nothing uses teammates.
+  retired:
+    - [env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS]
+    - [teammateMode]
+
   settings:
-    env:
-      CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
-    teammateMode: tmux
     agentPushNotifEnabled: true
     # Suppress `Co-Authored-By: Claude` trailer in commits and the
     # `🤖 Generated with Claude Code` footer in PR bodies.
