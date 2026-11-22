@@ -17,7 +17,7 @@ Sources for durable corrections: this file's source is `~/.local/share/chezmoi/d
 ## Skill Learnings
 - The learning inbox for `learn note` and `learn review` is `~/Developer/docs/skill-learnings/inbox/` (private, outside every repository).
 - When I correct how one of my catalog skills behaved, write one lesson record there in the format of the `learn` skill's `references/inbox.md` (a direct file write; it doesn't load the skill), and say so in one line. Record only what the conversation shows; an unshown cause is `unestablished`.
-- Mention `/learn review` once, at the end of a reply, when the inbox holds 5 or more `open` or `applied` records or any of them is 14 or more days old, once per session. Never start a review yourself.
+- At most once per session, at the end of a reply, mention `/learn review` when the inbox holds 5 or more `open` or `applied` records or any of them is 14 or more days old. Never start a review yourself.
 
 ## Tool Preferences
 Prefer dedicated tools over Bash equivalents:
