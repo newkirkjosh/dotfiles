@@ -32,9 +32,9 @@ check "the user's other env key survives" '[ "$(get ".env.MY_VAR")" = "\"x\"" ]'
 check "the user's own top-level key survives" '[ "$(get ".model")" = "\"opus\"" ]'
 check "managed keys are merged in" '[ "$(get ".hooks.PreToolUse[0].hooks[0].command")" = "\"~/.claude/hooks/block-dangerous-git.sh\"" ]'
 
-# An env holding only the retired key is removed rather than left empty.
-run '{"env":{"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS":"1"}}'
-check "an env left empty is removed" '[ "$(get "has(\"env\")")" = false ]'
+# An env the user already left empty is kept as it was.
+run '{"env":{}}'
+check "an existing empty env is kept" '[ "$(get ".env")" = "{}" ]'
 
 # A fresh machine with no settings file at all.
 rm -rf "$tmp/home"; mkdir -p "$tmp/home"

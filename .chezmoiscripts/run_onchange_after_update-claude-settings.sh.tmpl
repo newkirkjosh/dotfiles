@@ -38,14 +38,12 @@ required_settings=$(echo "$required_settings" | jq \
     'del(.statusLine.commandPath) | .statusLine = $sl')
 
 # Merge: existing keys are preserved; our managed keys win on conflict; retired
-# keys are deleted, and an object they leave empty (env) is removed too.
+# keys are deleted (a parent they leave empty, such as env, stays as {}).
 result=$(echo "$existing" | jq \
     --argjson required "$required_settings" \
     --argjson marketplace "$marketplace_config" \
     --argjson retired "$retired_paths" \
-    '(. * $required * $marketplace | delpaths($retired)) as $r
-     | reduce ($retired[] | select(length > 1) | .[:-1]) as $p ($r;
-         if (getpath($p) == {}) then delpaths([$p]) else . end)')
+    '. * $required * $marketplace | delpaths($retired)')
 
 echo "$result" > "$SETTINGS_FILE"
 echo "✓ Updated $SETTINGS_FILE"
