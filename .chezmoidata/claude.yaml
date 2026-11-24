@@ -15,6 +15,25 @@ claude:
   retired:
     - [env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS]
     - [teammateMode]
+    # Third-party plugins and two language servers, uninstalled 2026-11-23:
+    # only our own skills (newkirkjosh/skills) and Anthropic's plugins stay,
+    # plus remember and the OpenAI codex plugin. Install a plugin only when
+    # the owner asks for it.
+    - [enabledPlugins, mattpocock-skills@claude-plugins-official]
+    - [enabledPlugins, superpowers@claude-plugins-official]
+    - [enabledPlugins, security-guidance@claude-plugins-official]
+    - [enabledPlugins, chrome-devtools-mcp@claude-plugins-official]
+    - [enabledPlugins, context7@claude-plugins-official]
+    - [enabledPlugins, supabase@claude-plugins-official]
+    - [enabledPlugins, firebase@claude-plugins-official]
+    - [enabledPlugins, figma@claude-plugins-official]
+    - [enabledPlugins, linear@claude-plugins-official]
+    - [enabledPlugins, posthog@claude-plugins-official]
+    - [enabledPlugins, discord@claude-plugins-official]
+    - [enabledPlugins, amd-skills@claude-plugins-official]
+    - [enabledPlugins, gopls-lsp@claude-plugins-official]
+    - [enabledPlugins, kotlin-lsp@claude-plugins-official]
+    - [enabledPlugins, obsidian-notes@anthropic-plugin-directory]
 
   settings:
     agentPushNotifEnabled: true
@@ -54,13 +73,10 @@ claude:
     # way to durably disable a plugin is to assert `false`.
     #
     # Disabled 2026-08-22 after a usage audit (0 invocations in 152 startups):
-    #   posthog        — ~135 skill descriptions injected per prompt, no account
     #   swift-lsp      — iOS targets can't be built on this Linux host
     #   typescript-lsp — no TypeScript work on this machine
-    #   amd-skills     — never used
-    #   discord        — never used; its MCP server can't start (no `bun`)
+    # Uninstalled plugins are listed under `retired` instead.
     enabledPlugins:
-      superpowers@claude-plugins-official: true
       code-review@claude-plugins-official: true
       claude-md-management@claude-plugins-official: true
       swift-lsp@claude-plugins-official: false
@@ -69,11 +85,3 @@ claude:
       typescript-lsp@claude-plugins-official: false
       code-simplifier@claude-plugins-official: true
       pr-review-toolkit@claude-plugins-official: true
-      supabase@claude-plugins-official: true
-      firebase@claude-plugins-official: true
-      context7@claude-plugins-official: true
-      gopls-lsp@claude-plugins-official: true
-      posthog@claude-plugins-official: false
-      figma@claude-plugins-official: true
-      amd-skills@claude-plugins-official: false
-      discord@claude-plugins-official: false
